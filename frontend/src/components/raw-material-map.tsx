@@ -31,7 +31,7 @@ function model(): Stream<Reducer<State>> {
 function view(state$: Stream<State>): Stream<VNode> {
     return state$.map(_ => (
         <div data-action="navigate">
-            <h2>Shows the origin of raw materials on map</h2>
+            <img src="img/map-result.png" />
         </div>
     ));
 }
