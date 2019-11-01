@@ -5,12 +5,10 @@ import { routerify } from 'cyclic-router';
 import switchPath from 'switch-path';
 
 import { Component } from './interfaces';
-import speechDriver from './drivers/speech';
 
 const driversFactories: any = {
     DOM: () => makeDOMDriver('#app'),
-    history: () => makeHistoryDriver(),
-    speech: () => speechDriver
+    history: () => makeHistoryDriver()
 };
 
 export function getDrivers(): any {
