@@ -32,6 +32,7 @@ function view(state$: Stream<State>): Stream<VNode> {
     return state$.map(_ => (
         <div data-action="navigate">
             <h2>Building map</h2>
+            <img src="img/map-search.png" />
         </div>
     ));
 }
