@@ -45,9 +45,14 @@ export function App(sources: Sources<State>): Sinks<State> {
         .filter((l: Location) => l.pathname === '/')
         .mapTo('/map-search');
 
+    // Ensure that first page loads are routed and rendered correctly
+    const firstTimePageLoad$: Stream<string> = sources.router.history$
+        .filter((l: any) => l.pathname !== '/' && l.type === undefined)
+        .map((l: Location) => l.pathname);
+
     const sinks = extractSinks(componentSinks$, driverNames);
     return {
         ...sinks,
-        router: xs.merge(redirect$, sinks.router)
+        router: xs.merge(redirect$, firstTimePageLoad$, sinks.router)
     };
 }
