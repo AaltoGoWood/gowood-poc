@@ -6,8 +6,6 @@ import isolate from '@cycle/isolate';
 import { driverNames } from '../drivers';
 import { Sources, Sinks, Reducer, Component } from '../interfaces';
 
-import { Counter, State as CounterState } from './counter';
-import { Speaker, State as SpeakerState } from './speaker';
 import { MapSearch, State as MapSearchState } from './map-search';
 import { Building, State as BuildingState } from './building';
 import {
@@ -16,8 +14,6 @@ import {
 } from './raw-material-map';
 
 export interface State {
-    counter?: CounterState;
-    speaker?: SpeakerState;
     mapSearch?: MapSearchState;
     building?: BuildingState;
     rawMaterialMap?: RawMaterialMapState;
@@ -25,8 +21,6 @@ export interface State {
 
 export function App(sources: Sources<State>): Sinks<State> {
     const match$ = sources.router.define({
-        '/counter': isolate(Counter, 'counter'),
-        '/speaker': isolate(Speaker, 'speaker'),
         '/map-search': isolate(MapSearch, 'map-search'),
         '/building': isolate(Building, 'building'),
         '/raw-material-map': isolate(RawMaterialMap, 'raw-material-map')
