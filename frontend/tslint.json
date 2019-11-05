@@ -22,5 +22,10 @@
     "class-name": true,
     "no-angle-bracket-type-assertion": true,
     "no-consecutive-blank-lines": true
+  },
+  "linterOptions": {
+    "exclude": [
+      "node_modules"
+    ]
   }
 }
