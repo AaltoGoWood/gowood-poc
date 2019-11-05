@@ -7,6 +7,17 @@ module.exports = {
     entry: {
         main: [appPath('src', 'index.ts'), appPath('src', 'css', 'styles.scss')]
     },
+    module: {
+        rules: [
+            {
+                test: /\.geojson$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'json-loader'
+                }
+            }
+        ]
+    },
     output: {
         filename: 'bundle.[hash].js',
         path: appPath('build'),
