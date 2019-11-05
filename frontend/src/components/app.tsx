@@ -27,6 +27,14 @@ export function App(sources: Sources<State>): Sinks<State> {
         '/raw-material-map': isolate(RawMaterialMap, 'raw-material-map')
     });
 
+    const layout$ = sources.router
+        .define({
+            '/map-search': { map: true },
+            '/building/:id': { map: false },
+            '/raw-material-map': { map: true }
+        })
+        .map((route: any) => route.value);
+
     const componentSinks$: Stream<Sinks<State>> = match$
         .filter(({ path, value }: any) => path && typeof value === 'function')
         .map(({ path, value }: { path: string; value: Component<any> }) => {
@@ -46,8 +54,10 @@ export function App(sources: Sources<State>): Sinks<State> {
         .map((l: Location) => l.pathname);
 
     const sinks = extractSinks(componentSinks$, driverNames);
+
     return {
         ...sinks,
+        layout: layout$,
         router: xs.merge(redirect$, firstTimePageLoad$, sinks.router)
     };
 }

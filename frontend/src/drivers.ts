@@ -3,12 +3,14 @@ import { makeHistoryDriver } from '@cycle/history';
 import { withState } from '@cycle/state';
 import { routerify } from 'cyclic-router';
 import switchPath from 'switch-path';
+import { layoutDriver } from './drivers/layoutDriver';
 
 import { Component } from './interfaces';
 
 const driversFactories: any = {
     DOM: () => makeDOMDriver('#app'),
-    history: () => makeHistoryDriver()
+    history: () => makeHistoryDriver(),
+    layout: () => layoutDriver
 };
 
 export function getDrivers(): any {
