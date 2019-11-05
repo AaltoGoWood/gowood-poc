@@ -22,7 +22,8 @@ export interface State {
 export function App(sources: Sources<State>): Sinks<State> {
     const match$ = sources.router.define({
         '/map-search': isolate(MapSearch, 'map-search'),
-        '/building': isolate(Building, 'building'),
+        '/building/:id': (props: any) =>
+            isolate(Building.bind(undefined, props), 'building'),
         '/raw-material-map': isolate(RawMaterialMap, 'raw-material-map')
     });
 
