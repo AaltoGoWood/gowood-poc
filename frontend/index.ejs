@@ -3,8 +3,28 @@
 <head>
     <meta charset="utf-8">
     <title>INSERT APP NAME HERE</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <!-- TODO: load from installed npm package -->
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css' rel='stylesheet' />
+
+    <!-- TODO: add scss-loader -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
+    <div id="map"></div>
     <div id="app"></div>
 </body>
 </html>
