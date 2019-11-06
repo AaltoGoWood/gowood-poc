@@ -68,11 +68,13 @@ table {
    }
    
    tr {     
-      &:nth-child(2n) { background-color: white; }
+      &:nth-child(2n) { background-color: lighten($baseColor, 80%); }
       &:nth-child(2n+1) { background-color: lighten($baseColor, 55%) }
    }
 
    tbody tr:hover {     
+      &:nth-child(2n) { background-color: lighten($baseColor, 30%)  }
+      &:nth-child(2n+1) { background-color: lighten($baseColor, 30%) }
       background-color: lighten($baseColor, 90%);
       cursor: pointer;
    }
