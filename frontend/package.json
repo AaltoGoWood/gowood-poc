@@ -58,6 +58,8 @@
     "@cycle/run": "^5.2.0",
     "@cycle/state": "^1.1.0",
     "@cycle/time": "^0.19.0",
+    "@types/ramda": "^0.25.00",
+    "ramda": "^0.25.0",
     "@types/mapbox-gl": "^1.5.0",
     "cyclejs-utils": "^4.0.2",
     "cyclic-router": "^6.0.0",

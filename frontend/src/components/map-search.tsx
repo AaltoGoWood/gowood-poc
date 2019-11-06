@@ -10,7 +10,11 @@ interface DOMIntent {
     link$: Stream<null>;
 }
 
-export function MapSearch({ DOM, state }: Sources<State>): Sinks<State> {
+export function MapSearch({
+    DOM,
+    state,
+    router
+}: Sources<State>): Sinks<State> {
     const { link$ }: DOMIntent = intent(DOM);
 
     return {
@@ -46,5 +50,5 @@ function intent(DOM: DOMSource): DOMIntent {
 }
 
 function redirect(link$: Stream<any>): Stream<string> {
-    return link$.mapTo('/building');
+    return link$.mapTo('/building/123');
 }
