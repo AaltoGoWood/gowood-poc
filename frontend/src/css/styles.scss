@@ -64,12 +64,17 @@ table {
    
    th { 
       background-color: lighten($baseColor, 50%);
-      font-weight: 300;
+      font-weight: 600;
    }
    
    tr {     
       &:nth-child(2n) { background-color: white; }
       &:nth-child(2n+1) { background-color: lighten($baseColor, 55%) }
+   }
+
+   tbody tr:hover {     
+      background-color: lighten($baseColor, 90%);
+      cursor: pointer;
    }
 }
 
