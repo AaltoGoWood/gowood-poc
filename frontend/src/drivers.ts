@@ -9,6 +9,7 @@ import { Component } from './interfaces';
 const driversFactories: any = {
     DOM: () => makeDOMDriver('#app'),
     history: () => makeHistoryDriver()
+    // TODO: a map event driver?
 };
 
 export function getDrivers(): any {
