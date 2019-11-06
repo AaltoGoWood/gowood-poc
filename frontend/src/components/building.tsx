@@ -59,12 +59,39 @@ function model(
 }
 
 function view(state$: Stream<State>): Stream<VNode> {
+    const renderDetails = (rows: any[]) => {
+        return (
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Id</th>
+                        <th>Producer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows.map((row: any) => (
+                        <tr data-action="navigate">
+                            <td>{row.type}</td>
+                            <td>{row.id}</td>
+                            <td>{row.producer}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        );
+    };
     return state$.map((state: State) => {
         return (
-            <div data-action="navigate">
+            <div>
                 <h2>Building details</h2>
-                <p>{state.buildingId}</p>
-                <p>{JSON.stringify(state.buildingDetails)}</p>
+                <p>Building id: {state.buildingId}</p>
+                {state.buildingDetails ? '' : <p>Loading...</p>}
+                {state.buildingDetails && state.buildingDetails.found ? (
+                    renderDetails(state.buildingDetails.data)
+                ) : (
+                    <p>Building not found</p>
+                )}
             </div>
         );
     });
