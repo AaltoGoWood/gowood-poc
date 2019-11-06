@@ -8,9 +8,11 @@ import { Sources, Sinks, Reducer } from '../interfaces';
 
 export interface State {
     buildingId?: any | undefined;
+    buildingDetails?: any | undefined;
 }
 export const defaultState: State = {
-    buildingId: undefined
+    buildingId: undefined,
+    buildingDetails: undefined
 };
 
 interface DOMIntent {
@@ -19,17 +21,26 @@ interface DOMIntent {
 }
 
 export function Building(props: any, sources: Sources<State>): Sinks<State> {
-    const { DOM, state, router }: Sources<State> = sources;
+    console.log('Building', sources);
+    const { DOM, state, router, dataQuery }: Sources<State> = sources;
     const props$ = xs.of(props);
     const { link$, building$ }: DOMIntent = intent(DOM, props$);
     return {
         DOM: view(state.stream),
-        state: model(building$),
-        router: redirect(link$)
+        state: model(building$, dataQuery),
+        router: redirect(link$),
+        dataQuery: query(building$)
     };
 }
 
-function model(building$: Stream<any>): Stream<Reducer<State>> {
+function query(building$: Stream<string>): Stream<any> {
+    return building$.map(id => ({ type: 'buildings', id }));
+}
+
+function model(
+    building$: Stream<any>,
+    dataQuery: Stream<any>
+): Stream<Reducer<State>> {
     const init$ = xs.of<Reducer<State>>(prevState =>
         prevState === undefined ? defaultState : prevState
     );
@@ -40,7 +51,11 @@ function model(building$: Stream<any>): Stream<Reducer<State>> {
         .map(buildingId => ({ buildingId }))
         .map(addToState);
 
-    return xs.merge(init$, buildingId$);
+    const buildingDetails$ = dataQuery.map(data =>
+        addToState({ buildingDetails: data })
+    );
+
+    return xs.merge(init$, buildingId$, buildingDetails$);
 }
 
 function view(state$: Stream<State>): Stream<VNode> {
@@ -49,6 +64,7 @@ function view(state$: Stream<State>): Stream<VNode> {
             <div data-action="navigate">
                 <h2>Building details</h2>
                 <p>{state.buildingId}</p>
+                <p>{JSON.stringify(state.buildingDetails)}</p>
             </div>
         );
     });

@@ -4,13 +4,15 @@ import { withState } from '@cycle/state';
 import { routerify } from 'cyclic-router';
 import switchPath from 'switch-path';
 import { layoutDriver } from './drivers/layoutDriver';
+import { dataQueryDriver } from './drivers/dataQueryDriver';
 
 import { Component } from './interfaces';
 
 const driversFactories: any = {
     DOM: () => makeDOMDriver('#app'),
     history: () => makeHistoryDriver(),
-    layout: () => layoutDriver
+    layout: () => layoutDriver,
+    dataQuery: () => dataQueryDriver
 };
 
 export function getDrivers(): any {
