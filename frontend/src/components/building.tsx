@@ -61,29 +61,33 @@ function model(
 function view(state$: Stream<State>): Stream<VNode> {
     const renderDetails = (rows: any[]) => {
         return (
-            <table>
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Id</th>
-                        <th>Producer</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.map((row: any) => (
-                        <tr data-action="navigate">
-                            <td>{row.type}</td>
-                            <td>{row.id}</td>
-                            <td>{row.producer}</td>
+            <div className="asset-table">
+                <div className="header">Assets</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Id</th>
+                            <th>Producer</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {rows.map((row: any) => (
+                            <tr data-action="navigate">
+                                <td>{row.type}</td>
+                                <td>{row.id}</td>
+                                <td>{row.producer}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         );
     };
+
     return state$.map((state: State) => {
         return (
-            <div>
+            <div className="building-details">
                 <h2>Building details</h2>
                 <p>Building id: {state.buildingId}</p>
                 {state.buildingDetails ? '' : <p>Loading...</p>}
