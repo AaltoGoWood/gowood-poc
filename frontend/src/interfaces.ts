@@ -12,6 +12,7 @@ export interface Sources<State> {
     DOM: DOMSource;
     router: RouterSource;
     state: StateSource<State>;
+    dataQuery: Stream<any>;
 }
 
 export interface Sinks<State> {
@@ -20,4 +21,5 @@ export interface Sinks<State> {
     speech?: Stream<string>;
     layout?: Stream<LayoutState>;
     state?: Stream<Reducer<State>>;
+    dataQuery?: Stream<{ type: string; id: string }>;
 }

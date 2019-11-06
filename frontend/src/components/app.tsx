@@ -29,9 +29,9 @@ export function App(sources: Sources<State>): Sinks<State> {
 
     const layout$ = sources.router
         .define({
-            '/map-search': { map: true },
-            '/building/:id': { map: false },
-            '/raw-material-map': { map: true }
+            '/map-search': { map: true, building: false },
+            '/building/:id': { map: false, building: true },
+            '/raw-material-map': { map: true, building: false }
         })
         .map((route: any) => route.value);
 
