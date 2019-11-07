@@ -9,10 +9,12 @@ import { Sources, Sinks, Reducer } from '../interfaces';
 export interface State {
     buildingId?: any | undefined;
     buildingDetails?: any | undefined;
+    assetDetails?: any | undefined;
 }
 export const defaultState: State = {
     buildingId: undefined,
-    buildingDetails: undefined
+    buildingDetails: undefined,
+    assetDetails: undefined
 };
 
 interface DOMIntent {
@@ -58,61 +60,153 @@ function model(
         .filter(res => res.req.type === 'buildings')
         .map(data => addToState({ buildingDetails: data }));
 
-    const plywoodDetails$ = dataQuery
+    const assetDetails$ = dataQuery
         .filter(res => res.req.type === 'plywood')
-        .map(data => addToState({ plywoodDetails: data }));
+        .map(data => addToState({ assetDetails: data }));
 
-    return xs.merge(init$, buildingId$, buildingDetails$, plywoodDetails$);
+    return xs.merge(init$, buildingId$, buildingDetails$, assetDetails$);
+}
+
+interface RenderBuildingDetailsProps {
+    id: string;
+    rows: any[];
+    dispatchFn: (e: any) => void;
+}
+const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
+    return (
+        <div className="asset-table">
+            <div className="header">Building (id: {props.id})</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Id</th>
+                        <th>Producer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {props.rows.map((row: any) => {
+                        return (
+                            <tr
+                                onclick={() =>
+                                    props.dispatchFn({
+                                        type: row.type,
+                                        id: row.id
+                                    })
+                                }
+                            >
+                                <td>{row.type}</td>
+                                <td>{row.id}</td>
+                                <td>{row.producer}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+interface RenderAssetDetailsProps {
+    id: string;
+    type: string;
+    rows: any[];
+    dispatchFn: (e: any) => void;
+}
+const renderAssetDetails = (props: RenderAssetDetailsProps) => {
+    return (
+        <div className="asset-table">
+            <div className="header">
+                {props.type} (id: {props.id})
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Id</th>
+                        <th>Coordinates</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {props.rows.map((row: any) => {
+                        return (
+                            <tr>
+                                <td>{row.type}</td>
+                                <td>{row.id}</td>
+                                <td>{row.coords}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+interface RenderDetailsPanelsProps {
+    buildingDetailsFound: boolean;
+    assetDetailsFound: boolean;
+    buildingDetails: any;
+    assetDetails: any;
+    dispatchFn: (e: any) => void;
+}
+function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
+    console.log('renderDetailsPanels.props', props);
+    console.log('renderDetailsPanels', [
+        props.buildingDetailsFound,
+        props.assetDetailsFound
+    ]);
+
+    const viewType: string =
+        props.buildingDetailsFound === undefined
+            ? 'loading'
+            : props.buildingDetailsFound === false
+            ? 'building-not-found'
+            : props.buildingDetailsFound && !props.assetDetailsFound
+            ? 'building-details'
+            : props.buildingDetailsFound && props.assetDetailsFound
+            ? 'asset-details'
+            : 'error';
+
+    switch (viewType) {
+        case 'building-not-found':
+            return <p>Building not found</p>;
+        case 'building-details':
+            return renderBuildingDetails({
+                id: props.buildingDetails.req.id,
+                rows: props.buildingDetails.data,
+                dispatchFn: props.dispatchFn
+            });
+        case 'asset-details':
+            return renderAssetDetails({
+                id: props.assetDetails.req.id,
+                type: props.assetDetails.req.type,
+                rows: props.assetDetails.data,
+                dispatchFn: props.dispatchFn
+            });
+        case 'loading':
+            return <p>Loading...</p>;
+        default:
+            return <p>Error.</p>;
+    }
 }
 
 function view(state$: Stream<State>, dispatch$: Stream<any>): Stream<VNode> {
-    const renderDetails = (rows: any[]) => {
-        return (
-            <div className="asset-table">
-                <div className="header">Assets</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Id</th>
-                            <th>Producer</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rows.map((row: any) => {
-                            return (
-                                <tr
-                                    onclick={() =>
-                                        dispatch$.shamefullySendNext({
-                                            type: row.type,
-                                            id: row.id
-                                        })
-                                    }
-                                >
-                                    <td>{row.type}</td>
-                                    <td>{row.id}</td>
-                                    <td>{row.producer}</td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-        );
-    };
-
+    const dispatchFn = (events: any) => dispatch$.shamefullySendNext(events);
     return state$.map((state: State) => {
         return (
             <div className="building-details">
                 <h2>Building details</h2>
-                <p>Building id: {state.buildingId}</p>
                 <p>State: {JSON.stringify(state)}</p>
-                {state.buildingDetails ? '' : <p>Loading...</p>}
-                {state.buildingDetails && state.buildingDetails.found ? (
-                    renderDetails(state.buildingDetails.data)
-                ) : (
-                    <p>Building not found</p>
-                )}
+                {renderDetailsPanels({
+                    buildingDetailsFound:
+                        state.buildingDetails && state.buildingDetails.found,
+                    assetDetailsFound:
+                        state.assetDetails && state.assetDetails.found,
+                    buildingDetails: state.buildingDetails,
+                    assetDetails: state.assetDetails,
+                    dispatchFn: dispatchFn
+                })}
             </div>
         );
     });
