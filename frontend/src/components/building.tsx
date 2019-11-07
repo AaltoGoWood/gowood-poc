@@ -99,7 +99,6 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
                 <div className="header">
                     <button
                         onclick={(e: any) => {
-                            console.log('navigate-to-building-browser');
                             e.preventDefault();
                             props.dispatchFn({
                                 type: 'navigate-to-building-browser'
@@ -124,7 +123,6 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
                                 <tr
                                     id={`asset-${row.type}-id-${row.id}`}
                                     onclick={(e: any) => {
-                                        console.log('show-building-assets');
                                         e.preventDefault();
                                         props.dispatchFn({
                                             type: 'show-building-assets',
@@ -159,7 +157,6 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
             <div className="header">
                 <button
                     onclick={(e: any) => {
-                        console.log('reset-building-assets');
                         e.preventDefault();
                         props.dispatchFn({ type: 'reset-building-assets' });
                     }}
@@ -186,7 +183,6 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                                         data: { dataType: row.type },
                                         id: row.id
                                     };
-                                    console.log('show-asset-origin', cmd);
                                     e.preventDefault();
                                     props.dispatchFn(cmd);
                                 }}
@@ -254,8 +250,6 @@ function view(
     return state$.map((state: State) => {
         return (
             <div className="building-details">
-                <h2>Building details</h2>
-                <p>State: {JSON.stringify(state)}</p>
                 {renderDetailsPanels({
                     buildingDetailsFound:
                         state.buildingDetails && state.buildingDetails.found,
