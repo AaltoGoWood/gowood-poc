@@ -21,7 +21,7 @@ export type Command<T = any> = {
 
 export type MapEventData = {
     type: 'ensure-tree' | 'move-to';
-    coords: { x: number; y: number };
+    coords: { lng: number; lat: number };
 };
 
 export interface Sources<State> {
