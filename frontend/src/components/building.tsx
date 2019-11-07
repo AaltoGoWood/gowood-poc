@@ -1,8 +1,7 @@
 import xs, { Stream } from 'xstream';
 import { VNode, DOMSource } from '@cycle/dom';
 import { RouterSource } from 'cyclic-router';
-import * as r from 'ramda';
-// import { RouterSource } from '@'
+import * as R from 'ramda';
 
 import { Sources, Sinks, Reducer, Command } from '../interfaces';
 
@@ -24,7 +23,6 @@ interface DOMIntent {
 }
 
 export function Building(props: any, sources: Sources<State>): Sinks<State> {
-    console.log('Building', sources);
     const { DOM, state, dataQuery, commandGateway }: Sources<State> = sources;
     const props$ = xs.of(props);
     const { link$, building$, commandGateway$ }: DOMIntent = intent(
@@ -35,7 +33,7 @@ export function Building(props: any, sources: Sources<State>): Sinks<State> {
 
     return {
         DOM: view(state.stream, commandGateway$),
-        state: model(building$, dataQuery),
+        state: model(building$, dataQuery, commandGateway$),
         router: redirect(link$),
         dataQuery: query(building$, commandGateway$),
         commandGateway: commandGateway$
@@ -55,14 +53,15 @@ function query(
 
 function model(
     building$: Stream<any>,
-    dataQuery: Stream<any>
+    dataQuery: Stream<any>,
+    commandGateway$: Stream<Command>
 ): Stream<Reducer<State>> {
     const init$ = xs.of<Reducer<State>>(prevState =>
         prevState === undefined ? defaultState : prevState
     );
 
     const addToState: (data: any) => Reducer<State> = data => state =>
-        r.merge(state || {}, data);
+        R.merge(state || {}, data);
     const buildingId$ = building$
         .map(buildingId => ({ buildingId }))
         .map(addToState);
@@ -74,8 +73,17 @@ function model(
     const assetDetails$ = dataQuery
         .filter(res => res.req.type === 'plywood')
         .map(data => addToState({ assetDetails: data }));
+    const resetBuildingAssets$ = commandGateway$
+        .filter(cmd => cmd.type === 'reset-building-assets')
+        .map(state => addToState({ assetDetails: undefined }));
 
-    return xs.merge(init$, buildingId$, buildingDetails$, assetDetails$);
+    return xs.merge(
+        init$,
+        buildingId$,
+        buildingDetails$,
+        assetDetails$,
+        resetBuildingAssets$
+    );
 }
 
 interface RenderBuildingDetailsProps {
@@ -85,36 +93,41 @@ interface RenderBuildingDetailsProps {
 }
 const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
     return (
-        <div className="asset-table">
-            <div className="header">Building (id: {props.id})</div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>Id</th>
-                        <th>Producer</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {props.rows.map((row: any) => {
-                        return (
-                            <tr
-                                onclick={() =>
-                                    props.dispatchFn({
-                                        type: 'show-building-assets',
-                                        data: { dataType: row.type },
-                                        id: row.id
-                                    })
-                                }
-                            >
-                                <td>{row.type}</td>
-                                <td>{row.id}</td>
-                                <td>{row.producer}</td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
+        <div>
+            <div id="building-details" className="asset-table">
+                <div className="header">Building (id: {props.id})</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Id</th>
+                            <th>Producer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {props.rows.map((row: any) => {
+                            return (
+                                <tr
+                                    onclick={(e: any) => {
+                                        console.log('show-building-assets');
+                                        e.preventDefault();
+                                        props.dispatchFn({
+                                            type: 'show-building-assets',
+                                            data: { dataType: row.type },
+                                            id: row.id
+                                        });
+                                    }}
+                                >
+                                    <td>{row.type}</td>
+                                    <td>{row.id}</td>
+                                    <td>{row.producer}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+            <div id="asset-details" className="asset-detail"></div>
         </div>
     );
 };
@@ -123,12 +136,21 @@ interface RenderAssetDetailsProps {
     id: string;
     type: string;
     rows: any[];
-    dispatchFn: (e: any) => void;
+    dispatchFn: (e: Command) => void;
 }
 const renderAssetDetails = (props: RenderAssetDetailsProps) => {
     return (
-        <div className="asset-table">
+        <div id="asset-details" className="asset-detail">
             <div className="header">
+                <button
+                    onclick={(e: any) => {
+                        console.log('reset-building-assets');
+                        e.preventDefault();
+                        props.dispatchFn({ type: 'reset-building-assets' });
+                    }}
+                >
+                    Back to building
+                </button>
                 {props.type} (id: {props.id})
             </div>
             <table>
@@ -142,7 +164,18 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                 <tbody>
                     {props.rows.map((row: any) => {
                         return (
-                            <tr>
+                            <tr
+                                onclick={(e: any) => {
+                                    const cmd: Command = {
+                                        type: 'show-asset-origin',
+                                        data: { dataType: row.type },
+                                        id: row.id
+                                    };
+                                    console.log('show-asset-origin', cmd);
+                                    e.preventDefault();
+                                    props.dispatchFn(cmd);
+                                }}
+                            >
                                 <td>{row.type}</td>
                                 <td>{row.id}</td>
                                 <td>{row.coords}</td>
@@ -163,12 +196,6 @@ interface RenderDetailsPanelsProps {
     dispatchFn: (e: any) => void;
 }
 function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
-    console.log('renderDetailsPanels.props', props);
-    console.log('renderDetailsPanels', [
-        props.buildingDetailsFound,
-        props.assetDetailsFound
-    ]);
-
     const viewType: string =
         props.buildingDetailsFound === undefined
             ? 'loading'
@@ -234,9 +261,10 @@ function intent(
     commandGateway: Stream<any>
 ): DOMIntent {
     const commandGateway$ = commandGateway || xs.never();
-    const link$ = DOM.select('[data-action="navigate"]')
-        .events('click')
-        .mapTo(null);
+    const link$ = xs.never();
+    // DOM.select('[data-action="navigate"]')
+    //     .events('click')
+    //     .mapTo(null);
 
     // TODO: clean up later.
     const building$ = props.map((data: any) => {
