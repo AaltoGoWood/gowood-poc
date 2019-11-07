@@ -105,11 +105,11 @@ function mapCommandsToMapEvents(
                     data: [
                         {
                             type: 'ensure-tree',
-                            coords: { x: 0, y: 0 }
+                            coords: { lng: 25.474243614, lat: 65.0563745 }
                         },
                         {
                             type: 'move-to',
-                            coords: { x: 0, y: 0 }
+                            coords: { lng: 25.474243614, lat: 65.0563745 }
                         }
                     ]
                 } as Command<MapEventData[]>)

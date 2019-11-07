@@ -1,4 +1,6 @@
 import * as mapboxgl from 'mapbox-gl';
+import { dict, number } from 'jsverify';
+import { Dictionary } from 'ramda';
 
 let map: mapboxgl.Map;
 
@@ -196,3 +198,51 @@ export const initMap = () => {
         map.on('click', layer, layerClickHandlers[layer]);
     }
 };
+
+// Handle events coming outside map component
+const eventRoot = document.body;
+type MapDataEvent = { type: string; coords: { lng: number; lat: number } };
+type MapDataEventHandler = (param: MapDataEvent) => void;
+let treeSource;
+const handlerStrategy: Dictionary<MapDataEventHandler> = {
+    'move-to': e => {
+        map.panTo(e.coords);
+    },
+    'ensure-tree': e => {
+        // if (map.getSource('tree-source')) {
+        //     map = map.removeSource('tree-source');
+        // }
+        map.addLayer({
+            id: 'source',
+            type: 'symbol',
+            source: {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: [
+                        {
+                            type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [e.coords.lng, e.coords.lat]
+                            },
+                            properties: {
+                                name: 'village'
+                            }
+                        }
+                    ]
+                }
+            }
+        });
+    }
+};
+
+eventRoot.addEventListener('map-event', (e: CustomEvent<MapDataEvent[]>) => {
+    if (e.detail) {
+        e.detail.map(
+            event =>
+                handlerStrategy[event.type] &&
+                handlerStrategy[event.type](event)
+        );
+    }
+});
