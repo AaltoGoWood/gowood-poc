@@ -4,7 +4,7 @@ import { RouterSource } from 'cyclic-router';
 import * as r from 'ramda';
 // import { RouterSource } from '@'
 
-import { Sources, Sinks, Reducer } from '../interfaces';
+import { Sources, Sinks, Reducer, Command } from '../interfaces';
 
 export interface State {
     buildingId?: any | undefined;
@@ -20,26 +20,37 @@ export const defaultState: State = {
 interface DOMIntent {
     link$: Stream<null>;
     building$: Stream<any>;
-    dispatch$: Stream<any>;
+    commandGateway$: Stream<Command>;
 }
 
 export function Building(props: any, sources: Sources<State>): Sinks<State> {
     console.log('Building', sources);
-    const { DOM, state, router, dataQuery }: Sources<State> = sources;
+    const { DOM, state, dataQuery, commandGateway }: Sources<State> = sources;
     const props$ = xs.of(props);
-    const { link$, building$, dispatch$ }: DOMIntent = intent(DOM, props$);
+    const { link$, building$, commandGateway$ }: DOMIntent = intent(
+        DOM,
+        props$,
+        commandGateway
+    );
 
     return {
-        DOM: view(state.stream, dispatch$),
+        DOM: view(state.stream, commandGateway$),
         state: model(building$, dataQuery),
         router: redirect(link$),
-        dataQuery: query(building$, dispatch$)
+        dataQuery: query(building$, commandGateway$),
+        commandGateway: commandGateway$
     };
 }
 
-function query(building$: Stream<string>, dispatch$: Stream<any>): Stream<any> {
+function query(
+    building$: Stream<string>,
+    commandGateway$: Stream<Command>
+): Stream<any> {
     const buildingQuery$ = building$.map(id => ({ type: 'buildings', id }));
-    return xs.merge(buildingQuery$, dispatch$);
+    const dataQueryCommands$ = commandGateway$
+        .filter(({ type }) => type === 'show-building-assets')
+        .map(command => ({ type: command.data.dataType, id: command.id }));
+    return xs.merge(buildingQuery$, dataQueryCommands$);
 }
 
 function model(
@@ -70,7 +81,7 @@ function model(
 interface RenderBuildingDetailsProps {
     id: string;
     rows: any[];
-    dispatchFn: (e: any) => void;
+    dispatchFn: (e: Command) => void;
 }
 const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
     return (
@@ -90,7 +101,8 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
                             <tr
                                 onclick={() =>
                                     props.dispatchFn({
-                                        type: row.type,
+                                        type: 'show-building-assets',
+                                        data: { dataType: row.type },
                                         id: row.id
                                     })
                                 }
@@ -191,8 +203,12 @@ function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
     }
 }
 
-function view(state$: Stream<State>, dispatch$: Stream<any>): Stream<VNode> {
-    const dispatchFn = (events: any) => dispatch$.shamefullySendNext(events);
+function view(
+    state$: Stream<State>,
+    commandGateway$: Stream<any>
+): Stream<VNode> {
+    const dispatchFn = (events: any) =>
+        commandGateway$.shamefullySendNext(events);
     return state$.map((state: State) => {
         return (
             <div className="building-details">
@@ -212,9 +228,12 @@ function view(state$: Stream<State>, dispatch$: Stream<any>): Stream<VNode> {
     });
 }
 
-function intent(DOM: DOMSource, props: Stream<any>): DOMIntent {
-    const dispatch$ = xs.never();
-
+function intent(
+    DOM: DOMSource,
+    props: Stream<any>,
+    commandGateway: Stream<any>
+): DOMIntent {
+    const commandGateway$ = commandGateway || xs.never();
     const link$ = DOM.select('[data-action="navigate"]')
         .events('click')
         .mapTo(null);
@@ -223,7 +242,7 @@ function intent(DOM: DOMSource, props: Stream<any>): DOMIntent {
     const building$ = props.map((data: any) => {
         return data;
     });
-    return { link$, building$, dispatch$ };
+    return { link$, building$, commandGateway$ };
 }
 
 function redirect(link$: Stream<any>): Stream<string> {
