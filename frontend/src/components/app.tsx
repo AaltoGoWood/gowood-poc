@@ -20,6 +20,9 @@ export interface State {
 }
 
 export function App(sources: Sources<State>): Sinks<State> {
+    const commandGateway$ = sources.commandGateway || xs.never();
+    sources.commandGateway = commandGateway$;
+
     const match$ = sources.router.define({
         '/map-search': isolate(MapSearch, 'map-search'),
         '/building/:id': (props: any) =>
@@ -53,11 +56,21 @@ export function App(sources: Sources<State>): Sinks<State> {
         .filter((l: any) => l.pathname !== '/' && l.type === undefined)
         .map((l: Location) => l.pathname);
 
+    const handledNavigateEvents$ = commandGateway$
+        .filter(cmd => cmd.type === 'navigate-to-building-browser')
+        .mapTo('/map-search');
+
     const sinks = extractSinks(componentSinks$, driverNames);
 
     return {
         ...sinks,
         layout: layout$,
-        router: xs.merge(redirect$, firstTimePageLoad$, sinks.router)
+        commandGateway: commandGateway$,
+        router: xs.merge(
+            redirect$,
+            firstTimePageLoad$,
+            handledNavigateEvents$,
+            sinks.router
+        )
     };
 }

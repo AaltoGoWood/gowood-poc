@@ -13,7 +13,8 @@ export type Command = {
         | 'show-building'
         | 'show-building-assets'
         | 'reset-building-assets'
-        | 'show-asset-origin';
+        | 'show-asset-origin'
+        | 'navigate-to-building-browser';
     id?: string;
     data?: any;
 };
