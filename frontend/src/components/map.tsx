@@ -199,6 +199,12 @@ export const initMap = () => {
     }
 };
 
+const addMarkerTo = (coords: mapboxgl.LngLatLike) => {
+    var el = document.createElement('div');
+    el.className = 'marker';
+    new mapboxgl.Marker(el).setLngLat(coords).addTo(map);
+};
+
 // Handle events coming outside map component
 const eventRoot = document.body;
 type MapDataEvent = { type: string; coords: { lng: number; lat: number } };
@@ -209,31 +215,29 @@ const handlerStrategy: Dictionary<MapDataEventHandler> = {
         map.panTo(e.coords);
     },
     'ensure-tree': e => {
-        // if (map.getSource('tree-source')) {
-        //     map = map.removeSource('tree-source');
-        // }
-        map.addLayer({
-            id: 'source',
-            type: 'symbol',
-            source: {
-                type: 'geojson',
-                data: {
-                    type: 'FeatureCollection',
-                    features: [
-                        {
-                            type: 'Feature',
-                            geometry: {
-                                type: 'Point',
-                                coordinates: [e.coords.lng, e.coords.lat]
-                            },
-                            properties: {
-                                name: 'village'
-                            }
-                        }
-                    ]
-                }
-            }
-        });
+        // map.addLayer({
+        //     id: 'source',
+        //     type: 'symbol',
+        //     source: {
+        //         type: 'geojson',
+        //         data: {
+        //             type: 'FeatureCollection',
+        //             features: [
+        //                 {
+        //                     type: 'Feature',
+        //                     geometry: {
+        //                         type: 'Point',
+        //                         coordinates: [e.coords.lng, e.coords.lat]
+        //                     },
+        //                     properties: {
+        //                         name: 'village'
+        //                     }
+        //                 }
+        //             ]
+        //         }
+        //     }
+        // });
+        addMarkerTo([e.coords.lng, e.coords.lat]);
     }
 };
 
