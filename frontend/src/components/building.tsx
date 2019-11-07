@@ -155,7 +155,7 @@ interface RenderAssetDetailsProps {
 }
 const renderAssetDetails = (props: RenderAssetDetailsProps) => {
     return (
-        <div id="asset-details" className="asset-detail">
+        <div id="asset-details" className="asset-table">
             <div className="header">
                 <button
                     onclick={(e: any) => {

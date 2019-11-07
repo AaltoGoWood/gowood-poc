@@ -5,6 +5,7 @@ import { routerify } from 'cyclic-router';
 import switchPath from 'switch-path';
 import { layoutDriver } from './drivers/layoutDriver';
 import { dataQueryDriver } from './drivers/dataQueryDriver';
+import { mapDriver } from './drivers/mapDriver';
 
 import { Component } from './interfaces';
 
@@ -12,7 +13,8 @@ const driversFactories: any = {
     DOM: () => makeDOMDriver('#app'),
     history: () => makeHistoryDriver(),
     layout: () => layoutDriver,
-    dataQuery: () => dataQueryDriver
+    dataQuery: () => dataQueryDriver,
+    map: () => mapDriver
 };
 
 export function getDrivers(): any {
