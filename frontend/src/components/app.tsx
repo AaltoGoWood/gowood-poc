@@ -4,7 +4,14 @@ import { extractSinks } from 'cyclejs-utils';
 import isolate from '@cycle/isolate';
 
 import { driverNames } from '../drivers';
-import { Sources, Sinks, Reducer, Component, Command } from '../interfaces';
+import {
+    Sources,
+    Sinks,
+    Reducer,
+    Component,
+    Command,
+    MapEventData
+} from '../interfaces';
 
 import { MapSearch, State as MapSearchState } from './map-search';
 import { Building, State as BuildingState } from './building';
@@ -13,6 +20,8 @@ import {
     State as RawMaterialMapState
 } from './raw-material-map';
 import { Dictionary } from 'ramda';
+import { type } from 'os';
+import { MapDataEvent } from 'mapbox-gl';
 
 export interface State {
     mapSearch?: MapSearchState;
@@ -21,7 +30,8 @@ export interface State {
 }
 
 export function App(sources: Sources<State>): Sinks<State> {
-    const commandGateway$ = sources.commandGateway || xs.never();
+    const commandGateway$: Stream<Command> =
+        sources.commandGateway || xs.never();
     sources.commandGateway = commandGateway$;
 
     const match$ = sources.router.define({
@@ -67,10 +77,13 @@ export function App(sources: Sources<State>): Sinks<State> {
 
     const sinks = extractSinks(componentSinks$, driverNames);
 
+    const $showAssetOrigin = mapCommandsToMapEvents(commandGateway$);
+
     return {
         ...sinks,
         layout: layout$,
         commandGateway: commandGateway$,
+        map: $showAssetOrigin,
         router: xs.merge(
             redirect$,
             firstTimePageLoad$,
@@ -78,4 +91,27 @@ export function App(sources: Sources<State>): Sinks<State> {
             sinks.router
         )
     };
+}
+
+function mapCommandsToMapEvents(
+    commandGateway$: Stream<Command>
+): Stream<Command<MapEventData[]>> {
+    return commandGateway$
+        .filter(cmd => cmd.type === 'show-asset-origin')
+        .map(
+            (cmd: Command) =>
+                ({
+                    type: cmd.type,
+                    data: [
+                        {
+                            type: 'ensure-tree',
+                            coords: { x: 0, y: 0 }
+                        },
+                        {
+                            type: 'move-to',
+                            coords: { x: 0, y: 0 }
+                        }
+                    ]
+                } as Command<MapEventData[]>)
+        );
 }

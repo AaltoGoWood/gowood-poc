@@ -8,7 +8,7 @@ export { Reducer } from '@cycle/state';
 
 export type Component<State> = (s: Sources<State>) => Sinks<State>;
 
-export type Command = {
+export type Command<T = any> = {
     type:
         | 'show-building'
         | 'show-building-assets'
@@ -16,7 +16,12 @@ export type Command = {
         | 'show-asset-origin'
         | 'navigate-to-building-browser';
     id?: string;
-    data?: any;
+    data?: T;
+};
+
+export type MapEventData = {
+    type: 'ensure-tree' | 'move-to';
+    coords: { x: number; y: number };
 };
 
 export interface Sources<State> {
@@ -35,4 +40,5 @@ export interface Sinks<State> {
     state?: Stream<Reducer<State>>;
     dataQuery?: Stream<{ type: string; id: string }>;
     commandGateway?: Stream<any>;
+    map?: Stream<Command<MapEventData[]>>;
 }
