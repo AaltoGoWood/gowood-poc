@@ -8,11 +8,18 @@ export { Reducer } from '@cycle/state';
 
 export type Component<State> = (s: Sources<State>) => Sinks<State>;
 
+export type Command = {
+    type: 'show-building' | 'show-building-assets' | 'reset-building-assets';
+    id?: string;
+    data?: any;
+};
+
 export interface Sources<State> {
     DOM: DOMSource;
     router: RouterSource;
     state: StateSource<State>;
     dataQuery: Stream<any>;
+    commandGateway: Stream<Command>;
 }
 
 export interface Sinks<State> {
@@ -22,4 +29,5 @@ export interface Sinks<State> {
     layout?: Stream<LayoutState>;
     state?: Stream<Reducer<State>>;
     dataQuery?: Stream<{ type: string; id: string }>;
+    commandGateway?: Stream<any>;
 }
