@@ -31,8 +31,8 @@ const data: Data = {
             { type: 'tree-trunk', id: 'p123-1', coords: [123.11, 1234.11] },
             { type: 'tree-trunk', id: 'p123-2', coords: [123.22, 1234.22] }
         ],
-        p124: [{ type: 'tree-trunk', id: '123', coords: [234.11, 234.11] }],
-        p125: [{ type: 'tree-trunk', id: '123', coords: [32.11, 3423.22] }]
+        p124: [{ type: 'tree-trunk', id: 'p124-1', coords: [234.11, 234.11] }],
+        p125: [{ type: 'tree-trunk', id: 'p125-1', coords: [32.11, 3423.22] }]
     }
 };
 

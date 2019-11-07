@@ -9,7 +9,11 @@ export { Reducer } from '@cycle/state';
 export type Component<State> = (s: Sources<State>) => Sinks<State>;
 
 export type Command = {
-    type: 'show-building' | 'show-building-assets' | 'reset-building-assets';
+    type:
+        | 'show-building'
+        | 'show-building-assets'
+        | 'reset-building-assets'
+        | 'show-asset-origin';
     id?: string;
     data?: any;
 };
