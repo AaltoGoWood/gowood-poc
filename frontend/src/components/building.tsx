@@ -73,6 +73,7 @@ function model(
     const assetDetails$ = dataQuery
         .filter(res => res.req.type === 'plywood')
         .map(data => addToState({ assetDetails: data }));
+
     const resetBuildingAssets$ = commandGateway$
         .filter(cmd => cmd.type === 'reset-building-assets')
         .map(state => addToState({ assetDetails: undefined }));
@@ -95,7 +96,20 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
     return (
         <div>
             <div id="building-details" className="asset-table">
-                <div className="header">Building (id: {props.id})</div>
+                <div className="header">
+                    <button
+                        onclick={(e: any) => {
+                            console.log('navigate-to-building-browser');
+                            e.preventDefault();
+                            props.dispatchFn({
+                                type: 'navigate-to-building-browser'
+                            });
+                        }}
+                    >
+                        Back to map
+                    </button>
+                    Building (id: {props.id})
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -108,6 +122,7 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
                         {props.rows.map((row: any) => {
                             return (
                                 <tr
+                                    id={`asset-${row.type}-id-${row.id}`}
                                     onclick={(e: any) => {
                                         console.log('show-building-assets');
                                         e.preventDefault();
@@ -258,9 +273,8 @@ function view(
 function intent(
     DOM: DOMSource,
     props: Stream<any>,
-    commandGateway: Stream<any>
+    commandGateway: Stream<Command>
 ): DOMIntent {
-    const commandGateway$ = commandGateway || xs.never();
     const link$ = xs.never();
     // DOM.select('[data-action="navigate"]')
     //     .events('click')
@@ -270,7 +284,7 @@ function intent(
     const building$ = props.map((data: any) => {
         return data;
     });
-    return { link$, building$, commandGateway$ };
+    return { link$, building$, commandGateway$: commandGateway };
 }
 
 function redirect(link$: Stream<any>): Stream<string> {
