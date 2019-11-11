@@ -98,6 +98,7 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
             <div id="building-details" className="asset-table">
                 <div className="header">
                     <button
+                        className="gowood-button"
                         onclick={(e: any) => {
                             e.preventDefault();
                             props.dispatchFn({
@@ -156,15 +157,25 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
         <div id="asset-details" className="asset-table">
             <div className="header">
                 <button
+                    className="gowood-button"
                     onclick={(e: any) => {
                         e.preventDefault();
-                        props.dispatchFn({ type: 'reset-building-assets' });
+                        props.dispatchFn({
+                            type: 'reset-building-assets',
+                            data: {
+                                coords: {
+                                    lng: 24.93,
+                                    lat: 60.18
+                                }
+                            }
+                        });
                     }}
                 >
                     Back to building
                 </button>
                 {props.type} (id: {props.id})
                 <button
+                    className="gowood-button"
                     onclick={(e: any) => {
                         const cmd: Command = {
                             type: 'show-asset-origin',
