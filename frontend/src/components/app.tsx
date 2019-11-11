@@ -96,21 +96,36 @@ export function App(sources: Sources<State>): Sinks<State> {
 function mapCommandsToMapEvents(
     commandGateway$: Stream<Command>
 ): Stream<Command<MapEventData[]>> {
-    return commandGateway$
-        .filter(cmd => cmd.type === 'show-asset-origin')
-        .map((cmd: Command) => {
-            return {
-                type: cmd.type,
-                data: [
-                    ...cmd.data.map((asset: MapEventData) => ({
-                        type: 'ensure-tree',
-                        coords: asset.coords
-                    })),
-                    {
-                        type: 'move-to',
-                        coords: cmd.data[0] && cmd.data[0].coords
-                    }
-                ]
-            } as Command<MapEventData[]>;
-        });
+    return xs.merge(
+        commandGateway$
+            .filter(cmd => cmd.type === 'show-asset-origin')
+            .map((cmd: Command) => {
+                return {
+                    type: cmd.type,
+                    data: [
+                        ...cmd.data.map((asset: MapEventData) => ({
+                            type: 'ensure-tree',
+                            coords: asset.coords
+                        })),
+                        {
+                            type: 'move-to',
+                            coords: cmd.data[0] && cmd.data[0].coords
+                        }
+                    ]
+                } as Command<MapEventData[]>;
+            }),
+        commandGateway$
+            .filter(cmd => cmd.type === 'reset-building-assets')
+            .map((cmd: Command) => {
+                return {
+                    type: cmd.type,
+                    data: [
+                        {
+                            type: 'move-to',
+                            coords: cmd.data.coords
+                        }
+                    ]
+                } as Command<MapEventData[]>;
+            })
+    );
 }
