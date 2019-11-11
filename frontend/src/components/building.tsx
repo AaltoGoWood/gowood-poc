@@ -164,6 +164,22 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                     Back to building
                 </button>
                 {props.type} (id: {props.id})
+                <button
+                    onclick={(e: any) => {
+                        const cmd: Command = {
+                            type: 'show-asset-origin',
+                            data: props.rows.map(row => ({
+                                dataType: row.type,
+                                coords: row.coords
+                            })),
+                            id: props.id
+                        };
+                        e.preventDefault();
+                        props.dispatchFn(cmd);
+                    }}
+                >
+                    Show origins in map
+                </button>
             </div>
             <table>
                 <thead>
@@ -180,7 +196,12 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                                 onclick={(e: any) => {
                                     const cmd: Command = {
                                         type: 'show-asset-origin',
-                                        data: { dataType: row.type },
+                                        data: [
+                                            {
+                                                dataType: row.type,
+                                                coords: row.coords
+                                            }
+                                        ],
                                         id: row.id
                                     };
                                     e.preventDefault();

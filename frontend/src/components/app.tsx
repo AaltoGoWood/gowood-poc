@@ -98,20 +98,19 @@ function mapCommandsToMapEvents(
 ): Stream<Command<MapEventData[]>> {
     return commandGateway$
         .filter(cmd => cmd.type === 'show-asset-origin')
-        .map(
-            (cmd: Command) =>
-                ({
-                    type: cmd.type,
-                    data: [
-                        {
-                            type: 'ensure-tree',
-                            coords: { lng: 25.474243614, lat: 65.0563745 }
-                        },
-                        {
-                            type: 'move-to',
-                            coords: { lng: 25.474243614, lat: 65.0563745 }
-                        }
-                    ]
-                } as Command<MapEventData[]>)
-        );
+        .map((cmd: Command) => {
+            return {
+                type: cmd.type,
+                data: [
+                    ...cmd.data.map((asset: MapEventData) => ({
+                        type: 'ensure-tree',
+                        coords: asset.coords
+                    })),
+                    {
+                        type: 'move-to',
+                        coords: cmd.data[0] && cmd.data[0].coords
+                    }
+                ]
+            } as Command<MapEventData[]>;
+        });
 }

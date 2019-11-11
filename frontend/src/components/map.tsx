@@ -215,28 +215,6 @@ const handlerStrategy: Dictionary<MapDataEventHandler> = {
         map.panTo(e.coords);
     },
     'ensure-tree': e => {
-        // map.addLayer({
-        //     id: 'source',
-        //     type: 'symbol',
-        //     source: {
-        //         type: 'geojson',
-        //         data: {
-        //             type: 'FeatureCollection',
-        //             features: [
-        //                 {
-        //                     type: 'Feature',
-        //                     geometry: {
-        //                         type: 'Point',
-        //                         coordinates: [e.coords.lng, e.coords.lat]
-        //                     },
-        //                     properties: {
-        //                         name: 'village'
-        //                     }
-        //                 }
-        //             ]
-        //         }
-        //     }
-        // });
         addMarkerTo([e.coords.lng, e.coords.lat]);
     }
 };
