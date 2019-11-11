@@ -28,11 +28,31 @@ const data: Data = {
     },
     plywood: {
         p123: [
-            { type: 'tree-trunk', id: 'p123-1', coords: [123.11, 1234.11] },
-            { type: 'tree-trunk', id: 'p123-2', coords: [123.22, 1234.22] }
+            {
+                type: 'tree-trunk',
+                id: 'p123-1',
+                coords: { lng: 25.474273614, lat: 65.0563745 }
+            },
+            {
+                type: 'tree-trunk',
+                id: 'p123-2',
+                coords: { lng: 25.474293614, lat: 65.0543745 }
+            }
         ],
-        p124: [{ type: 'tree-trunk', id: 'p124-1', coords: [234.11, 234.11] }],
-        p125: [{ type: 'tree-trunk', id: 'p125-1', coords: [32.11, 3423.22] }]
+        p124: [
+            {
+                type: 'tree-trunk',
+                id: 'p124-1',
+                coords: { lng: 25.474243614, lat: 65.0503745 }
+            }
+        ],
+        p125: [
+            {
+                type: 'tree-trunk',
+                id: 'p125-1',
+                coords: { lng: 25.474203614, lat: 65.0560745 }
+            }
+        ]
     }
 };
 
