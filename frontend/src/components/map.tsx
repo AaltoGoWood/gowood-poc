@@ -1,4 +1,6 @@
 import * as mapboxgl from 'mapbox-gl';
+import { dict, number } from 'jsverify';
+import { Dictionary } from 'ramda';
 
 let map: mapboxgl.Map;
 
@@ -144,9 +146,8 @@ const buildingClickHandler = (ev: mapboxgl.MapLayerMouseEvent) => {
         .setLngLat(ev.lngLat)
         .setHTML(
             `
-            <h1>Building Y</h1>
-            <h2><a href="/building/${propertyId}">Details</a></h2>
-            ${JSON.stringify(f, null, 2)}
+            <h1>Building (Id: ${propertyId})</h1>
+            <h2><a href="/building/${propertyId}">Details</a></h2>            
         `
         )
         .addTo(map);
@@ -196,3 +197,37 @@ export const initMap = () => {
         map.on('click', layer, layerClickHandlers[layer]);
     }
 };
+
+const addMarkerTo = (coords: mapboxgl.LngLatLike) => {
+    var el = document.createElement('div');
+    el.className = 'marker';
+    return new mapboxgl.Marker(el).setLngLat(coords).addTo(map);
+};
+
+// Handle events coming outside map component
+const eventRoot = document.body;
+type MapDataEvent = { type: string; coords: { lng: number; lat: number } };
+type MapDataEventHandler = (param: MapDataEvent) => void;
+let markers: mapboxgl.Marker[] = [];
+const handlerStrategy: Dictionary<MapDataEventHandler> = {
+    'move-to': e => {
+        map.panTo(e.coords);
+    },
+    'reset-markers': e => {
+        markers.forEach(m => m.remove());
+        markers = [];
+    },
+    'ensure-tree': e => {
+        markers.push(addMarkerTo([e.coords.lng, e.coords.lat]));
+    }
+};
+
+eventRoot.addEventListener('map-event', (e: CustomEvent<MapDataEvent[]>) => {
+    if (e.detail) {
+        e.detail.map(
+            event =>
+                handlerStrategy[event.type] &&
+                handlerStrategy[event.type](event)
+        );
+    }
+});

@@ -20,8 +20,8 @@ export type Command<T = any> = {
 };
 
 export type MapEventData = {
-    type: 'ensure-tree' | 'move-to';
-    coords: { x: number; y: number };
+    type: 'ensure-tree' | 'move-to' | 'reset-markers';
+    coords: { lng: number; lat: number };
 };
 
 export interface Sources<State> {
