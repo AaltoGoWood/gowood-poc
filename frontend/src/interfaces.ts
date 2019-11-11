@@ -20,7 +20,7 @@ export type Command<T = any> = {
 };
 
 export type MapEventData = {
-    type: 'ensure-tree' | 'move-to';
+    type: 'ensure-tree' | 'move-to' | 'reset-markers';
     coords: { lng: number; lat: number };
 };
 

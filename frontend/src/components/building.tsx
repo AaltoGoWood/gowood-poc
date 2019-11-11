@@ -221,7 +221,7 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                             >
                                 <td>{row.type}</td>
                                 <td>{row.id}</td>
-                                <td>{row.coords}</td>
+                                <td>{JSON.stringify(row.coords)}</td>
                             </tr>
                         );
                     })}

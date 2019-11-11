@@ -139,15 +139,15 @@ const buildingClickHandler = (ev: mapboxgl.MapLayerMouseEvent) => {
     if (!ev.features) return;
     const f = ev.features[0];
 
-    // document.location.href = '/building';
+    // Try get property id
+    const propertyId = f && f['properties'] && f['properties']['id'];
 
     new mapboxgl.Popup({ maxWidth: '360px' })
         .setLngLat(ev.lngLat)
         .setHTML(
             `
-            <h1>Building Y</h1>
-            <h2><a href="/building">Details</a></h2>
-            ${JSON.stringify(f, null, 2)}
+            <h1>Building (Id: ${propertyId})</h1>
+            <h2><a href="/building/${propertyId}">Details</a></h2>            
         `
         )
         .addTo(map);
@@ -201,20 +201,24 @@ export const initMap = () => {
 const addMarkerTo = (coords: mapboxgl.LngLatLike) => {
     var el = document.createElement('div');
     el.className = 'marker';
-    new mapboxgl.Marker(el).setLngLat(coords).addTo(map);
+    return new mapboxgl.Marker(el).setLngLat(coords).addTo(map);
 };
 
 // Handle events coming outside map component
 const eventRoot = document.body;
 type MapDataEvent = { type: string; coords: { lng: number; lat: number } };
 type MapDataEventHandler = (param: MapDataEvent) => void;
-let treeSource;
+let markers: mapboxgl.Marker[] = [];
 const handlerStrategy: Dictionary<MapDataEventHandler> = {
     'move-to': e => {
         map.panTo(e.coords);
     },
+    'reset-markers': e => {
+        markers.forEach(m => m.remove());
+        markers = [];
+    },
     'ensure-tree': e => {
-        addMarkerTo([e.coords.lng, e.coords.lat]);
+        markers.push(addMarkerTo([e.coords.lng, e.coords.lat]));
     }
 };
 
