@@ -103,6 +103,7 @@ function mapCommandsToMapEvents(
                 return {
                     type: cmd.type,
                     data: [
+                        { type: 'reset-markers' },
                         ...cmd.data.map((asset: MapEventData) => ({
                             type: 'ensure-tree',
                             coords: asset.coords
