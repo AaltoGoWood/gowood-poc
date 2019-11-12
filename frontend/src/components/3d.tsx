@@ -20,7 +20,7 @@ export function foo(): void {
 }
 
 let scene: Scene, camera: Camera, renderer: Renderer;
-//let controls: OrbitControls;
+let controls: OrbitControls;
 let hlight: AmbientLight, directionalLight: DirectionalLight;
 let light: PointLight,
     light2: PointLight,
@@ -75,8 +75,7 @@ export function init3d(): void {
     camera.position.y = 100;
     camera.position.z = 1000;
 
-    // controls = new OrbitControls(camera);
-    // controls.addEventListener('change', renderer);
+    controls = new OrbitControls(camera);
 
     hlight = new THREE.AmbientLight(0x404040, 100);
     scene.add(hlight);
