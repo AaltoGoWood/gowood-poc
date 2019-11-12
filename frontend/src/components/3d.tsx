@@ -1,21 +1,54 @@
 import { Dictionary } from 'ramda';
 import * as THREE from 'three';
+import { Mesh, Camera, Scene, Renderer, Geometry, Material } from 'three';
 
 export function foo(): void {
     console.log('in 3d.tsx');
 }
 
-let scene, camera, renderer;
+//let scene, camera, renderer;
+const container = document.getElementById('3d-model');
+
+//SIMPLE TEST
+let camera: Camera, scene: Scene, renderer: Renderer, mesh: Mesh;
+let geometry: Geometry, material: Material;
+
 export function init3d(): void {
-    console.log('>> init3d()');
+    //SIMPLE TEST
+    camera = new THREE.PerspectiveCamera(
+        70,
+        window.innerWidth / window.innerHeight,
+        0.01,
+        10
+    );
+    camera.position.z = 1;
+
     scene = new THREE.Scene();
-    // //  scene.background = new THREE.Color(0xdddddd);
-    //  camera = new THREE.PerspectiveCamera(40,window.innerWidth/window.innerHeight,1,5000);
-    //   camera.rotation.y = 45/180*Math.PI;
-    //   camera.position.x = 800;
-    //   camera.position.y = 100;
-    //   camera.position.z = 1000;
-    //   controls = new THREE.OrbitControls(camera);
+
+    geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+    material = new THREE.MeshNormalMaterial();
+
+    mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    //document.body.appendChild( renderer.domElement );
+    if (container) {
+        container.appendChild(renderer.domElement);
+    }
+
+    console.log('>> init3d()');
+    // 1
+    // scene = new THREE.Scene();
+    // scene.background = new THREE.Color(0xdddddd);
+    // camera = new THREE.PerspectiveCamera(40,window.innerWidth/window.innerHeight,1,5000);
+    // camera.rotation.y = 45/180*Math.PI;
+    // camera.position.x = 800;
+    // camera.position.y = 100;
+    // camera.position.z = 1000;
+    //controls = new THREE.OrbitControls(camera);
     //   controls.addEventListener('change', renderer);
     //   hlight = new THREE.AmbientLight (0x404040,100);
     //   scene.add(hlight);
@@ -50,3 +83,12 @@ export function init3d(): void {
 //   renderer.render(scene,camera);
 //   requestAnimationFrame(animate);
 // }
+
+//SIMPLE TEST
+
+export function animate(): void {
+    requestAnimationFrame(animate);
+    mesh.rotation.x += 0.01;
+    mesh.rotation.y += 0.02;
+    renderer.render(scene, camera);
+}
