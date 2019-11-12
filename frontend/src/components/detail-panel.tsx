@@ -94,11 +94,11 @@ interface RenderBuildingDetailsProps {
 }
 const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
     return (
-        <div>
-            <div id="building-details" className="asset-table">
-                <div className="header">
+        <div id="root-details" className="detail-table-borders">
+            <div className="header">
+                <div id="breadcrumb">
                     <button
-                        className="gowood-button"
+                        className="gowood-button small"
                         onclick={(e: any) => {
                             e.preventDefault();
                             props.dispatchFn({
@@ -108,40 +108,40 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
                     >
                         Back to map
                     </button>
-                    Building (id: {props.id})
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Type</th>
-                            <th>Id</th>
-                            <th>Producer</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {props.rows.map((row: any) => {
-                            return (
-                                <tr
-                                    id={`asset-${row.type}-id-${row.id}`}
-                                    onclick={(e: any) => {
-                                        e.preventDefault();
-                                        props.dispatchFn({
-                                            type: 'show-building-assets',
-                                            data: { dataType: row.type },
-                                            id: row.id
-                                        });
-                                    }}
-                                >
-                                    <td>{row.type}</td>
-                                    <td>{row.id}</td>
-                                    <td>{row.producer}</td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                <h3 id="data-focus-title">Building (id: {props.id})</h3>
             </div>
-            <div id="asset-details" className="asset-detail"></div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Id</th>
+                        <th>Producer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {props.rows.map((row: any) => {
+                        return (
+                            <tr
+                                id={`asset-${row.type}-id-${row.id}`}
+                                onclick={(e: any) => {
+                                    e.preventDefault();
+                                    props.dispatchFn({
+                                        type: 'show-building-assets',
+                                        data: { dataType: row.type },
+                                        id: row.id
+                                    });
+                                }}
+                            >
+                                <td>{row.type}</td>
+                                <td>{row.id}</td>
+                                <td>{row.producer}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
         </div>
     );
 };
@@ -154,43 +154,49 @@ interface RenderAssetDetailsProps {
 }
 const renderAssetDetails = (props: RenderAssetDetailsProps) => {
     return (
-        <div id="asset-details" className="asset-table">
+        <div id="leaf-details" className="detail-table-borders">
             <div className="header">
-                <button
-                    className="gowood-button"
-                    onclick={(e: any) => {
-                        e.preventDefault();
-                        props.dispatchFn({
-                            type: 'reset-building-assets',
-                            data: {
-                                coords: {
-                                    lng: 24.93,
-                                    lat: 60.18
+                <div id="breadcrumb">
+                    <button
+                        className="gowood-button small"
+                        onclick={(e: any) => {
+                            e.preventDefault();
+                            props.dispatchFn({
+                                type: 'reset-building-assets',
+                                data: {
+                                    coords: {
+                                        lng: 24.93,
+                                        lat: 60.18
+                                    }
                                 }
-                            }
-                        });
-                    }}
-                >
-                    Back to building
-                </button>
-                {props.type} (id: {props.id})
-                <button
-                    className="gowood-button"
-                    onclick={(e: any) => {
-                        const cmd: Command = {
-                            type: 'show-asset-origin',
-                            data: props.rows.map(row => ({
-                                dataType: row.type,
-                                coords: row.coords
-                            })),
-                            id: props.id
-                        };
-                        e.preventDefault();
-                        props.dispatchFn(cmd);
-                    }}
-                >
-                    Show origins in map
-                </button>
+                            });
+                        }}
+                    >
+                        Back to building
+                    </button>
+                </div>
+                <h3 id="data-focus-title">
+                    {props.type} (id: {props.id})
+                </h3>
+                <div id="detail-actions">
+                    <button
+                        className="gowood-button small"
+                        onclick={(e: any) => {
+                            const cmd: Command = {
+                                type: 'show-asset-origin',
+                                data: props.rows.map(row => ({
+                                    dataType: row.type,
+                                    coords: row.coords
+                                })),
+                                id: props.id
+                            };
+                            e.preventDefault();
+                            props.dispatchFn(cmd);
+                        }}
+                    >
+                        Show origins in map
+                    </button>
+                </div>
             </div>
             <table>
                 <thead>
@@ -281,7 +287,8 @@ function view(
         commandGateway$.shamefullySendNext(events);
     return state$.map((state: State) => {
         return (
-            <div className="building-details">
+            <div id="details-panel">
+                <h1>Details</h1>
                 {renderDetailsPanels({
                     buildingDetailsFound:
                         state.buildingDetails && state.buildingDetails.found,
