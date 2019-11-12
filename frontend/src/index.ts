@@ -9,4 +9,8 @@ const main: Component<any> = wrapMain(App);
 
 run(main as any, getDrivers());
 
-initMap();
+// Init map once document is loaded
+window.addEventListener('load', () => {
+    console.log('map loaded');
+    initMap();
+});
