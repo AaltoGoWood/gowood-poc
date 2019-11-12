@@ -3,7 +3,6 @@ import { dict, number } from 'jsverify';
 import { Dictionary } from 'ramda';
 
 let map: mapboxgl.Map;
-
 const mapSetup = () => {
     // This must be set, but the value is not needed here.
     // @ts-ignore TODO readonly, yet this is how it's done in the official docs:
@@ -147,7 +146,7 @@ const buildingClickHandler = (ev: mapboxgl.MapLayerMouseEvent) => {
         .setHTML(
             `
             <h1>Building (Id: ${propertyId})</h1>
-            <h2><a href="/building/${propertyId}">Details</a></h2>            
+            <h2><a href="/traverse/${propertyId}">Details</a></h2>            
         `
         )
         .addTo(map);
@@ -196,6 +195,8 @@ export const initMap = () => {
 
         map.on('click', layer, layerClickHandlers[layer]);
     }
+    // window.map = map;
+    map.resize();
 };
 
 const addMarkerTo = (coords: mapboxgl.LngLatLike) => {

@@ -9,9 +9,8 @@ const main: Component<any> = wrapMain(App);
 
 run(main as any, getDrivers());
 
-// XXX super hacky
-if (document.location.href.indexOf('map') !== -1) {
+// Init map once document is loaded
+window.addEventListener('load', () => {
+    console.log('map loaded');
     initMap();
-} else {
-    document.querySelector('map')!.remove();
-}
+});

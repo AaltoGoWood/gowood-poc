@@ -13,20 +13,13 @@ import {
     MapEventData
 } from '../interfaces';
 
-import { MapSearch, State as MapSearchState } from './map-search';
-import { Building, State as BuildingState } from './building';
-import {
-    RawMaterialMap,
-    State as RawMaterialMapState
-} from './raw-material-map';
+import { LandingPanel, State as MapSearchState } from './landing-panel';
+import { Building, State as BuildingState } from './detail-panel';
 import { Dictionary } from 'ramda';
-import { type } from 'os';
-import { MapDataEvent } from 'mapbox-gl';
 
 export interface State {
     mapSearch?: MapSearchState;
     building?: BuildingState;
-    rawMaterialMap?: RawMaterialMapState;
 }
 
 export function App(sources: Sources<State>): Sinks<State> {
@@ -35,17 +28,15 @@ export function App(sources: Sources<State>): Sinks<State> {
     sources.commandGateway = commandGateway$;
 
     const match$ = sources.router.define({
-        '/browse-building': isolate(MapSearch, 'map-search'),
-        '/building/:id': (props: any) =>
-            isolate(Building.bind(undefined, props), 'building'),
-        '/raw-material-map': isolate(RawMaterialMap, 'raw-material-map')
+        '/browse-building': isolate(LandingPanel, 'map-search'),
+        '/traverse/:id': (props: any) =>
+            isolate(Building.bind(undefined, props), 'building')
     });
 
     const layout$ = sources.router
         .define({
             '/browse-building': { map: true, building: false },
-            '/building/:id': { map: false, building: true },
-            '/raw-material-map': { map: true, building: false }
+            '/traverse/:id': { map: true, building: false }
         })
         .map((route: any) => route.value);
 
@@ -68,8 +59,8 @@ export function App(sources: Sources<State>): Sinks<State> {
         .map((l: Location) => l.pathname);
 
     const navigateTo: Dictionary<string> = {
-        'navigate-to-building-browser': '/browse-building',
-        'show-asset-origin': '/raw-material-map'
+        'navigate-to-building-browser': '/browse-building'
+        // 'show-asset-origin': '/raw-material-map'
     };
     const handledNavigateEvents$ = commandGateway$
         .map((cmd: Command) => navigateTo[cmd.type])
