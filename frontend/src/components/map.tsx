@@ -195,8 +195,6 @@ export const initMap = () => {
 
         map.on('click', layer, layerClickHandlers[layer]);
     }
-    // window.map = map;
-    map.resize();
 };
 
 const addMarkerTo = (coords: mapboxgl.LngLatLike) => {

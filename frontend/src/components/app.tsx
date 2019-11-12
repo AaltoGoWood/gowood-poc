@@ -13,13 +13,13 @@ import {
     MapEventData
 } from '../interfaces';
 
-import { LandingPanel, State as MapSearchState } from './landing-panel';
-import { Building, State as BuildingState } from './detail-panel';
+import { LandingPanel, State as LandingPageState } from './landing-panel';
+import { Building, State as DetailPanelState } from './detail-panel';
 import { Dictionary } from 'ramda';
 
 export interface State {
-    mapSearch?: MapSearchState;
-    building?: BuildingState;
+    mapSearch?: LandingPageState;
+    building?: DetailPanelState;
 }
 
 export function App(sources: Sources<State>): Sinks<State> {
@@ -60,7 +60,6 @@ export function App(sources: Sources<State>): Sinks<State> {
 
     const navigateTo: Dictionary<string> = {
         'navigate-to-building-browser': '/browse-building'
-        // 'show-asset-origin': '/raw-material-map'
     };
     const handledNavigateEvents$ = commandGateway$
         .map((cmd: Command) => navigateTo[cmd.type])
