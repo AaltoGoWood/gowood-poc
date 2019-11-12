@@ -10,7 +10,7 @@ import {
     Reducer,
     Component,
     Command,
-    MapEventData
+    MutateMapEventData
 } from '../interfaces';
 
 import { LandingPanel, State as LandingPageState } from './landing-panel';
@@ -85,7 +85,7 @@ export function App(sources: Sources<State>): Sinks<State> {
 
 function mapCommandsToMapEvents(
     commandGateway$: Stream<Command>
-): Stream<Command<MapEventData[]>> {
+): Stream<Command<MutateMapEventData[]>> {
     return xs.merge(
         commandGateway$
             .filter(cmd => cmd.type === 'show-asset-origin')
@@ -94,7 +94,7 @@ function mapCommandsToMapEvents(
                     type: cmd.type,
                     data: [
                         { type: 'reset-markers' },
-                        ...cmd.data.map((asset: MapEventData) => ({
+                        ...cmd.data.map((asset: MutateMapEventData) => ({
                             type: 'ensure-tree',
                             coords: asset.coords
                         })),
@@ -103,7 +103,7 @@ function mapCommandsToMapEvents(
                             coords: cmd.data[0] && cmd.data[0].coords
                         }
                     ]
-                } as Command<MapEventData[]>;
+                } as Command<MutateMapEventData[]>;
             }),
         commandGateway$
             .filter(cmd => cmd.type === 'reset-building-assets')
@@ -116,7 +116,7 @@ function mapCommandsToMapEvents(
                             coords: cmd.data.coords
                         }
                     ]
-                } as Command<MapEventData[]>;
+                } as Command<MutateMapEventData[]>;
             })
     );
 }

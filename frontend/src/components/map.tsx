@@ -197,17 +197,27 @@ export const initMap = () => {
     }
 };
 
-const addMarkerTo = (coords: mapboxgl.LngLatLike) => {
-    var el = document.createElement('div');
+// Handle events coming outside map component
+const eventRoot = document.body;
+type MutateMapEventData = {
+    type: string;
+    coords: { lng: number; lat: number };
+};
+type MapEventData = {
+    type: string;
+    data: any;
+    coords?: { lng: number; lat: number };
+};
+type MapDataEventHandler = (param: MutateMapEventData) => void;
+let markers: mapboxgl.Marker[] = [];
+
+const addMarkerTo = (coords: mapboxgl.LngLatLike, eventData?: MapEventData) => {
+    const el = document.createElement('div');
     el.className = 'marker';
+    el.addEventListener('click', dispatchMapEventFn(eventData));
     return new mapboxgl.Marker(el).setLngLat(coords).addTo(map);
 };
 
-// Handle events coming outside map component
-const eventRoot = document.body;
-type MapDataEvent = { type: string; coords: { lng: number; lat: number } };
-type MapDataEventHandler = (param: MapDataEvent) => void;
-let markers: mapboxgl.Marker[] = [];
 const handlerStrategy: Dictionary<MapDataEventHandler> = {
     'move-to': e => {
         map.panTo(e.coords);
@@ -217,16 +227,39 @@ const handlerStrategy: Dictionary<MapDataEventHandler> = {
         markers = [];
     },
     'ensure-tree': e => {
-        markers.push(addMarkerTo([e.coords.lng, e.coords.lat]));
+        const onClickEventData: MapEventData = {
+            type: 'map-object-clicked',
+            data: { dataType: 'tree-trunk' },
+            coords: e.coords
+        };
+        markers.push(
+            addMarkerTo([e.coords.lng, e.coords.lat], onClickEventData)
+        );
     }
 };
 
-eventRoot.addEventListener('map-event', (e: CustomEvent<MapDataEvent[]>) => {
-    if (e.detail) {
-        e.detail.map(
-            event =>
-                handlerStrategy[event.type] &&
-                handlerStrategy[event.type](event)
-        );
+function dispatchMapEvent(eventData?: MapEventData): void {
+    if (!eventData) {
+        return;
     }
-});
+    const event = new CustomEvent<MapEventData>('map-event', {
+        detail: eventData
+    });
+    eventRoot.dispatchEvent(event);
+}
+
+const dispatchMapEventFn = (eventData?: MapEventData) =>
+    dispatchMapEvent.bind(undefined, eventData);
+
+eventRoot.addEventListener(
+    'mutate-map-event',
+    (e: CustomEvent<MutateMapEventData[]>) => {
+        if (e.detail) {
+            e.detail.map(
+                event =>
+                    handlerStrategy[event.type] &&
+                    handlerStrategy[event.type](event)
+            );
+        }
+    }
+);
