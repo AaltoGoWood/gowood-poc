@@ -3,29 +3,39 @@ import { VNode, DOMSource } from '@cycle/dom';
 import { RouterSource } from 'cyclic-router';
 import * as R from 'ramda';
 
-import { Sources, Sinks, Reducer, Command } from '../interfaces';
+import { Sources, Sinks, Reducer, Command, RouteProps } from '../interfaces';
 
 export interface State {
-    buildingId?: any | undefined;
-    buildingDetails?: any | undefined;
-    assetDetails?: any | undefined;
+    rootId?: string;
+    rootDetails?: any;
+    leafId?: string;
+    leafDetails?: any;
 }
 export const defaultState: State = {
-    buildingId: undefined,
-    buildingDetails: undefined,
-    assetDetails: undefined
+    rootId: undefined,
+    rootDetails: undefined,
+    leafId: undefined,
+    leafDetails: undefined
 };
 
+interface QueryEntity {
+    id: string;
+    type: string;
+    queryDepth: number;
+}
+
 interface DOMIntent {
-    link$: Stream<null>;
-    building$: Stream<any>;
+    rootDataQuery$: Stream<QueryEntity>;
     commandGateway$: Stream<Command>;
 }
 
-export function Building(props: any, sources: Sources<State>): Sinks<State> {
+export function Building(
+    props: RouteProps,
+    sources: Sources<State>
+): Sinks<State> {
     const { DOM, state, dataQuery, commandGateway }: Sources<State> = sources;
     const props$ = xs.of(props);
-    const { link$, building$, commandGateway$ }: DOMIntent = intent(
+    const { rootDataQuery$, commandGateway$ }: DOMIntent = intent(
         DOM,
         props$,
         commandGateway
@@ -33,26 +43,28 @@ export function Building(props: any, sources: Sources<State>): Sinks<State> {
 
     return {
         DOM: view(state.stream, commandGateway$),
-        state: model(building$, dataQuery, commandGateway$),
-        router: redirect(link$),
-        dataQuery: query(building$, commandGateway$),
+        state: model(rootDataQuery$, dataQuery, commandGateway$),
+        dataQuery: query(rootDataQuery$, commandGateway$),
         commandGateway: commandGateway$
     };
 }
 
 function query(
-    building$: Stream<string>,
+    rootDataQuery$: Stream<{ id: string; type: string }>,
     commandGateway$: Stream<Command>
 ): Stream<any> {
-    const buildingQuery$ = building$.map(id => ({ type: 'buildings', id }));
     const dataQueryCommands$ = commandGateway$
         .filter(({ type }) => type === 'show-building-assets')
-        .map(command => ({ type: command.data.dataType, id: command.id }));
-    return xs.merge(buildingQuery$, dataQueryCommands$);
+        .map(command => ({
+            type: command.data.dataType,
+            id: command.id,
+            queryDepth: 1
+        }));
+    return xs.merge(rootDataQuery$, dataQueryCommands$);
 }
 
 function model(
-    building$: Stream<any>,
+    rootDataQuery$: Stream<QueryEntity>,
     dataQuery: Stream<any>,
     commandGateway$: Stream<Command>
 ): Stream<Reducer<State>> {
@@ -60,29 +72,34 @@ function model(
         prevState === undefined ? defaultState : prevState
     );
 
-    const addToState: (data: any) => Reducer<State> = data => state =>
-        R.merge(state || {}, data);
-    const buildingId$ = building$
-        .map(buildingId => ({ buildingId }))
+    const addToState: (data: any) => Reducer<State> = data => state => {
+        console.log('state assoc', data);
+        return R.merge(state || {}, data);
+    };
+
+    const rootId$ = rootDataQuery$
+        .map(({ id }) => ({ rootId: id }))
         .map(addToState);
 
-    const buildingDetails$ = dataQuery
-        .filter(res => res.req.type === 'buildings')
-        .map(data => addToState({ buildingDetails: data }));
+    const rootDetails$ = dataQuery
+        .filter(res => res.req.queryDepth === 0)
+        .map(data => addToState({ rootDetails: data }));
 
-    const assetDetails$ = dataQuery
-        .filter(res => res.req.type === 'plywood')
-        .map(data => addToState({ assetDetails: data }));
+    const leafDetails$ = dataQuery
+        .filter(res => res.req.queryDepth > 0)
+        .map(data => addToState({ leafDetails: data }));
 
     const resetBuildingAssets$ = commandGateway$
         .filter(cmd => cmd.type === 'reset-building-assets')
-        .map(state => addToState({ assetDetails: undefined }));
+        .map(state =>
+            addToState({ leafId: undefined, leafDetails: undefined })
+        );
 
     return xs.merge(
         init$,
-        buildingId$,
-        buildingDetails$,
-        assetDetails$,
+        rootId$,
+        rootDetails$,
+        leafDetails$,
         resetBuildingAssets$
     );
 }
@@ -238,21 +255,21 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
 };
 
 interface RenderDetailsPanelsProps {
-    buildingDetailsFound: boolean;
-    assetDetailsFound: boolean;
-    buildingDetails: any;
-    assetDetails: any;
+    rootDetailsFound: boolean;
+    leafDetailsFound: boolean;
+    rootDetails: any;
+    leafDetails: any;
     dispatchFn: (e: any) => void;
 }
 function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
     const viewType: string =
-        props.buildingDetailsFound === undefined
+        props.rootDetailsFound === undefined
             ? 'loading'
-            : props.buildingDetailsFound === false
+            : props.rootDetailsFound === false
             ? 'building-not-found'
-            : props.buildingDetailsFound && !props.assetDetailsFound
+            : props.rootDetailsFound && !props.leafDetailsFound
             ? 'building-details'
-            : props.buildingDetailsFound && props.assetDetailsFound
+            : props.rootDetailsFound && props.leafDetailsFound
             ? 'asset-details'
             : 'error';
 
@@ -261,15 +278,15 @@ function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
             return <p>Building not found</p>;
         case 'building-details':
             return renderBuildingDetails({
-                id: props.buildingDetails.req.id,
-                rows: props.buildingDetails.data,
+                id: props.rootDetails.req.id,
+                rows: props.rootDetails.data,
                 dispatchFn: props.dispatchFn
             });
         case 'asset-details':
             return renderAssetDetails({
-                id: props.assetDetails.req.id,
-                type: props.assetDetails.req.type,
-                rows: props.assetDetails.data,
+                id: props.leafDetails.req.id,
+                type: props.leafDetails.req.type,
+                rows: props.leafDetails.data,
                 dispatchFn: props.dispatchFn
             });
         case 'loading':
@@ -286,16 +303,17 @@ function view(
     const dispatchFn = (events: any) =>
         commandGateway$.shamefullySendNext(events);
     return state$.map((state: State) => {
+        console.log('rending state', state);
         return (
             <div id="details-panel">
                 <h1>Details</h1>
                 {renderDetailsPanels({
-                    buildingDetailsFound:
-                        state.buildingDetails && state.buildingDetails.found,
-                    assetDetailsFound:
-                        state.assetDetails && state.assetDetails.found,
-                    buildingDetails: state.buildingDetails,
-                    assetDetails: state.assetDetails,
+                    rootDetailsFound:
+                        state.rootDetails && state.rootDetails.found,
+                    leafDetailsFound:
+                        state.leafDetails && state.leafDetails.found,
+                    rootDetails: state.rootDetails,
+                    leafDetails: state.leafDetails,
                     dispatchFn: dispatchFn
                 })}
             </div>
@@ -305,21 +323,12 @@ function view(
 
 function intent(
     DOM: DOMSource,
-    props: Stream<any>,
+    props: Stream<RouteProps>,
     commandGateway: Stream<Command>
 ): DOMIntent {
-    const link$ = xs.never();
-    // DOM.select('[data-action="navigate"]')
-    //     .events('click')
-    //     .mapTo(null);
-
-    // TODO: clean up later.
-    const building$ = props.map((data: any) => {
-        return data;
+    const rootDataQuery$ = props.map((data: RouteProps) => {
+        return { id: data.id, type: data.type, queryDepth: 0 } as QueryEntity;
     });
-    return { link$, building$, commandGateway$: commandGateway };
-}
 
-function redirect(link$: Stream<any>): Stream<string> {
-    return link$.mapTo('/raw-material-map');
+    return { rootDataQuery$, commandGateway$: commandGateway };
 }

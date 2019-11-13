@@ -13,13 +13,13 @@ export type Response = {
 };
 
 interface Data {
-    buildings: {
+    building: {
         [id: string]: any;
     };
     [id: string]: any;
 }
 const data: Data = {
-    buildings: {
+    building: {
         '746103': [
             { type: 'plywood', id: 'p123', producer: 'UPM Plywood' },
             { type: 'plywood', id: 'p124', producer: 'UPM Plywood' },
@@ -62,6 +62,7 @@ export function dataQueryDriver(
     return dataRequest$.map((req: Request) => {
         const { type, id } = req;
         const responseData: any = (data[type] && data[type][id]) as any;
+        console.log('data-req', req, responseData);
         if (responseData) {
             return {
                 req,
