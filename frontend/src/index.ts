@@ -6,7 +6,6 @@ import { initMap } from './components/map';
 import { init3d, animate } from './components/3d';
 
 const main: Component<any> = wrapMain(App);
-console.log('index.ts FTW');
 
 run(main as any, getDrivers());
 
