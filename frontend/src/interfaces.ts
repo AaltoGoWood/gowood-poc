@@ -49,3 +49,14 @@ export interface Sinks<State> {
     commandGateway?: Stream<any>;
     map?: Stream<Command<MutateMapEventData[]>>;
 }
+
+export interface RouteProps {
+    id?: string;
+    type?: string;
+    qs?: any;
+}
+
+export interface RoutedComponentAcc<T = any> {
+    renderFn: (props: RouteProps) => (sources: Sources<T>) => Sinks<T>;
+    routeProps: RouteProps;
+}
