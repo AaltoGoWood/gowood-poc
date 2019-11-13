@@ -6,10 +6,6 @@ import { initMap } from './components/map';
 import { init3d, animate } from './components/3d';
 
 const main: Component<any> = wrapMain(App);
-console.log('index.ts FTW');
-
-init3d();
-animate();
 
 run(main as any, getDrivers());
 
@@ -17,4 +13,5 @@ run(main as any, getDrivers());
 window.addEventListener('load', () => {
     console.log('map loaded');
     initMap();
+    init3d();
 });
