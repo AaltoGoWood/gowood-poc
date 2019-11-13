@@ -60,7 +60,8 @@ export function App(sources: Sources<State>): Sinks<State> {
     const layout$ = sources.router
         .define({
             '/browse-building': { map: true, building: false },
-            '/traverse/:type/:id/': { map: true, building: false }
+            '/traverse/:type/:id/': { map: true, building: false },
+            '/traverse-3d/:id': { map: false, building: true }
         })
         .map((route: any) => route.value);
 
