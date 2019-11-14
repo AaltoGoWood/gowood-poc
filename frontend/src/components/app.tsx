@@ -34,20 +34,35 @@ export function App(sources: Sources<State>): Sinks<State> {
         sources.commandGateway || xs.never();
     sources.commandGateway = commandGateway$;
 
+    const map$ = sources.map;
+    const mapDataQuery$ = map$
+        .filter(e => e.type === 'map-object-clicked')
+        .map(e => {
+            console.log('map-object-clicked', e);
+            return {
+                id: e.data.id,
+                type: e.data.type,
+                traversePath: e.data.traversePath
+            };
+        });
+
     const match$ = sources.router.define({
         '/browse-building': isolate(LandingPanel, 'map-search'),
-        '/traverse/:type/:id': (type: string, id: string) => ({
-            renderFn: (props: RouteProps) =>
-                isolate(DetailPanel.bind(undefined, props), 'traverse'),
-            // cyclic router have bug and it does not parse correctly id when it comes from historyApi
-            routeProps: { type, id: id.split('?')[0] }
-        })
+        '/traverse/:type/:id': (type: string, id: string) => {
+            console.log('foobar', type, id);
+            return {
+                renderFn: (props: RouteProps) =>
+                    DetailPanel.bind(undefined, props),
+                // cyclic router have bug and it does not parse correctly id when it comes from historyApi
+                routeProps: { type, id: id && id.split('?')[0] }
+            };
+        }
     });
 
     const layout$ = sources.router
         .define({
             '/browse-building': { map: true, building: false },
-            '/traverse/:id/': { map: true, building: false }
+            '/traverse/:type/:id/': { map: true, building: false }
         })
         .map((route: any) => route.value);
 
@@ -100,11 +115,12 @@ export function App(sources: Sources<State>): Sinks<State> {
         .filter(path => path !== undefined);
 
     const sinks = extractSinks(componentSinks$, driverNames);
-
+    const { dataQuery } = sinks;
     const $showAssetOrigin = mapCommandsToMapEvents(commandGateway$);
 
     return {
         ...sinks,
+        dataQuery: xs.merge(dataQuery, mapDataQuery$),
         layout: layout$,
         commandGateway: commandGateway$,
         map: $showAssetOrigin,
@@ -130,7 +146,8 @@ function mapCommandsToMapEvents(
                         { type: 'reset-markers' },
                         ...cmd.data.map((asset: MutateMapEventData) => ({
                             type: 'ensure-tree',
-                            coords: asset.coords
+                            coords: asset.coords,
+                            data: asset.data
                         })),
                         {
                             type: 'move-to',

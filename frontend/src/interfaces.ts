@@ -21,11 +21,12 @@ export type Command<T = any> = {
 
 export type MutateMapEventData = {
     type: 'ensure-tree' | 'move-to' | 'reset-markers';
+    data?: any;
     coords: { lng: number; lat: number };
 };
 
 export type MapEventData = {
-    type: 'object-clicked';
+    type: 'map-object-clicked';
     data?: any;
     coords?: { lng: number; lat: number };
 };
@@ -36,7 +37,7 @@ export interface Sources<State> {
     state: StateSource<State>;
     dataQuery: Stream<any>;
     commandGateway: Stream<Command>;
-    map: Stream<Command<MapEventData[]>>;
+    map: Stream<MapEventData>;
 }
 
 export interface Sinks<State> {

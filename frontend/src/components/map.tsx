@@ -146,7 +146,7 @@ const buildingClickHandler = (ev: mapboxgl.MapLayerMouseEvent) => {
         .setHTML(
             `
             <h1>Building (Id: ${propertyId})</h1>
-            <h2><a href="/traverse/${propertyId}">Details</a></h2>            
+            <h2><a href="/traverse/building/${propertyId}">Details</a></h2>            
         `
         )
         .addTo(map);
@@ -202,6 +202,7 @@ const eventRoot = document.body;
 type MutateMapEventData = {
     type: string;
     coords: { lng: number; lat: number };
+    data: any;
 };
 type MapEventData = {
     type: string;
@@ -229,9 +230,10 @@ const handlerStrategy: Dictionary<MapDataEventHandler> = {
     'ensure-tree': e => {
         const onClickEventData: MapEventData = {
             type: 'map-object-clicked',
-            data: { dataType: 'tree-trunk' },
+            data: e.data,
             coords: e.coords
         };
+        console.log('Ensure Tree', onClickEventData);
         markers.push(
             addMarkerTo([e.coords.lng, e.coords.lat], onClickEventData)
         );
