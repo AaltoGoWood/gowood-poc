@@ -38,7 +38,6 @@ export function App(sources: Sources<State>): Sinks<State> {
     const mapDataQuery$ = map$
         .filter(e => e.type === 'map-object-clicked')
         .map(e => {
-            console.log('map-object-clicked', e);
             return {
                 id: e.data.id,
                 type: e.data.type,
@@ -49,7 +48,6 @@ export function App(sources: Sources<State>): Sinks<State> {
     const match$ = sources.router.define({
         '/browse-building': isolate(LandingPanel, 'map-search'),
         '/traverse/:type/:id': (type: string, id: string) => {
-            console.log('foobar', type, id);
             return {
                 renderFn: (props: RouteProps) =>
                     DetailPanel.bind(undefined, props),
