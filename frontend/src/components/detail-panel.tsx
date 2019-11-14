@@ -82,7 +82,6 @@ function model(
     );
 
     const addToState: (data: any) => Reducer<State> = data => state => {
-        console.log('state assoc', data);
         return R.merge(state || {}, data);
     };
 
@@ -186,7 +185,6 @@ interface RenderAttributeTableProps {
     [key: string]: any;
 }
 const renderAttributeTable = (props: RenderAttributeTableProps) => {
-    console.log(props);
     const keys = Object.keys(props);
     if (keys.length === 0) {
         return <div id="attribute-panel" />;
@@ -252,6 +250,7 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                     <button
                         className="gowood-button small"
                         onclick={(e: any) => {
+                            e.preventDefault();
                             const cmd: Command<MutateMapEventData[]> = {
                                 type: 'show-asset-origin',
                                 data: props.rows.map(row => ({
@@ -273,8 +272,9 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                                 })),
                                 id: props.id
                             };
-                            e.preventDefault();
-                            props.dispatchFn(cmd);
+                            if (cmd.data && cmd.data.length > 0) {
+                                props.dispatchFn(cmd);
+                            }
                         }}
                     >
                         Show origins in map
@@ -297,7 +297,6 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                             <tr
                                 onclick={(e: any) => {
                                     e.preventDefault();
-                                    console.log('rendering', row);
                                     const showOriginCmd: Command<
                                         MutateMapEventData[]
                                     > = {
@@ -408,7 +407,6 @@ function view(
     const dispatchFn = (events: any) =>
         commandGateway$.shamefullySendNext(events);
     return state$.map((state: State) => {
-        console.log('rending state', state);
         return (
             <div id="details-panel">
                 <h1>Details</h1>
