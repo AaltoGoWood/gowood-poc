@@ -1,11 +1,13 @@
 @import 'partials/variables';
-@import 'partials/layout';
-@import 'partials/button.scss';
-@import 'partials/map.scss';
-@import 'partials/details-table.scss';
 
 span,
 button,
 textarea {
     margin: 0.5em;
 }
+
+@import 'partials/layout';
+@import 'partials/button.scss';
+@import 'partials/map.scss';
+@import 'partials/details-table.scss';
+@import 'partials/breadcrumb.scss';

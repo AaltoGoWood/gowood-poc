@@ -380,7 +380,6 @@ function view(
     return state$.map((state: State) => {
         return (
             <div id="details-panel">
-                <h1>Details</h1>
                 {renderDetailsPanels({
                     rootDetailsFound:
                         state.rootDetails && state.rootDetails.found,
