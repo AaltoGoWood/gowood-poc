@@ -20,7 +20,7 @@ interface Data {
 }
 const data: Data = {
     buildings: {
-        '123': [
+        '746103': [
             { type: 'plywood', id: 'p123', producer: 'UPM Plywood' },
             { type: 'plywood', id: 'p124', producer: 'UPM Plywood' },
             { type: 'plywood', id: 'p125', producer: 'UPM Plywood' }

@@ -139,7 +139,8 @@ const buildingClickHandler = (ev: mapboxgl.MapLayerMouseEvent) => {
     if (!ev.features) return;
     const f = ev.features[0];
 
-    // document.location.href = '/building';
+    // Try get property id
+    const propertyId = f && f['properties'] && f['properties']['id'];
 
     new mapboxgl.Popup({ maxWidth: '360px' })
         .setLngLat(ev.lngLat)
