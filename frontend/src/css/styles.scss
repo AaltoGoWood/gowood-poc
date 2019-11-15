@@ -1,8 +1,4 @@
 @import 'partials/variables';
-@import 'partials/layout';
-@import 'partials/button.scss';
-@import 'partials/map.scss';
-@import 'partials/details-table.scss';
 
 span,
 button,
@@ -10,9 +6,8 @@ textarea {
     margin: 0.5em;
 }
 
-
-$baseColor: #398B93;
-$borderRadius: 10px;
-$imageBig: 100px;
-$imageSmall: 60px;
-$padding: 10px;
+@import 'partials/layout';
+@import 'partials/button.scss';
+@import 'partials/map.scss';
+@import 'partials/details-table.scss';
+@import 'partials/breadcrumb.scss';
