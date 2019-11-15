@@ -19,6 +19,16 @@ export type Command<T = any> = {
     data?: T;
 };
 
+export interface QueryEntity {
+    id: string;
+    type: string;
+    traversePath: QueryEntity[];
+    visualization?: {
+        coords?: any;
+        model?: any;
+    };
+}
+
 export type MutateMapEventData = {
     type: 'ensure-tree' | 'move-to' | 'reset-markers';
     data?: any;

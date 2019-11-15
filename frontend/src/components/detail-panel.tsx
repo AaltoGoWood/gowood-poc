@@ -1,6 +1,5 @@
 import xs, { Stream } from 'xstream';
 import { VNode, DOMSource } from '@cycle/dom';
-import { RouterSource } from 'cyclic-router';
 import * as R from 'ramda';
 
 import {
@@ -9,8 +8,11 @@ import {
     Reducer,
     Command,
     RouteProps,
-    MutateMapEventData
+    MutateMapEventData,
+    QueryEntity
 } from '../interfaces';
+
+import { Breadcrumb } from './viewFragments/breadcrumb';
 
 export interface State {
     rootId?: string;
@@ -24,13 +26,6 @@ export const defaultState: State = {
     leafId: undefined,
     leafDetails: undefined
 };
-
-interface QueryEntity {
-    id: string;
-    type: string;
-    queryDepth: number; // Remove once ready
-    traversePath: QueryEntity[];
-}
 
 interface DOMIntent {
     rootDataQuery$: Stream<QueryEntity>;
@@ -122,19 +117,10 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
     return (
         <div id="root-details" className="detail-table-borders">
             <div className="header">
-                <div id="breadcrumb">
-                    <button
-                        className="gowood-button small"
-                        onclick={(e: any) => {
-                            e.preventDefault();
-                            props.dispatchFn({
-                                type: 'navigate-to-building-browser'
-                            });
-                        }}
-                    >
-                        Back to map
-                    </button>
-                </div>
+                {Breadcrumb({
+                    traversePath: [],
+                    dispatchFn: props.dispatchFn
+                })}
                 <h3 id="data-focus-title">Building (id: {props.id})</h3>
             </div>
 
@@ -224,25 +210,10 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
     return (
         <div id="leaf-details" className="detail-table-borders">
             <div className="header">
-                <div id="breadcrumb">
-                    <button
-                        className="gowood-button small"
-                        onclick={(e: any) => {
-                            e.preventDefault();
-                            props.dispatchFn({
-                                type: 'reset-building-assets',
-                                data: {
-                                    coords: {
-                                        lng: 24.93,
-                                        lat: 60.18
-                                    }
-                                }
-                            });
-                        }}
-                    >
-                        Back to building
-                    </button>
-                </div>
+                {Breadcrumb({
+                    traversePath: props.parentTraversePath,
+                    dispatchFn: props.dispatchFn
+                })}
                 <h3 id="data-focus-title">
                     {props.type} (id: {props.id})
                 </h3>
@@ -409,7 +380,6 @@ function view(
     return state$.map((state: State) => {
         return (
             <div id="details-panel">
-                <h1>Details</h1>
                 {renderDetailsPanels({
                     rootDetailsFound:
                         state.rootDetails && state.rootDetails.found,
