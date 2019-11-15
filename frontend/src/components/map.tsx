@@ -233,7 +233,6 @@ const handlerStrategy: Dictionary<MapDataEventHandler> = {
             data: e.data,
             coords: e.coords
         };
-        console.log('Ensure Tree', onClickEventData);
         markers.push(
             addMarkerTo([e.coords.lng, e.coords.lat], onClickEventData)
         );
