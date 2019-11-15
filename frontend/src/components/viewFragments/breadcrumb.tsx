@@ -59,6 +59,15 @@ export const Breadcrumb = (props: BreadcrumbProps) => {
             {navNodeView('Start location', (e: any) => {
                 e.preventDefault();
                 props.dispatchFn({
+                    type: 'reset-building-assets',
+                    data: {
+                        coords: {
+                            lng: 24.93,
+                            lat: 60.18
+                        }
+                    }
+                });
+                props.dispatchFn({
                     type: 'navigate-to-building-browser'
                 });
             })}
