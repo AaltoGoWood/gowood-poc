@@ -56,7 +56,7 @@ export const Breadcrumb = (props: BreadcrumbProps) => {
 
     return (
         <div id="breadcrumb">
-            {navNodeView('Start view', (e: any) => {
+            {navNodeView('Start location', (e: any) => {
                 e.preventDefault();
                 props.dispatchFn({
                     type: 'navigate-to-building-browser'
