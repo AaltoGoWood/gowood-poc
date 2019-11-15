@@ -13,7 +13,7 @@ import {
 } from '../interfaces';
 
 import { Breadcrumb } from './viewFragments/breadcrumb';
-
+import { AttributeTable } from './viewFragments/attribute-table';
 export interface State {
     rootId?: string;
     rootDetails?: any;
@@ -167,37 +167,6 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
     );
 };
 
-interface RenderAttributeTableProps {
-    [key: string]: any;
-}
-const renderAttributeTable = (props: RenderAttributeTableProps) => {
-    const keys = Object.keys(props);
-    if (keys.length === 0) {
-        return <div id="attribute-panel" />;
-    }
-    return (
-        <div id="attribute-panel">
-            <h3>Entity properties</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Property</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {keys.map(k => (
-                        <tr>
-                            <td>{k}</td>
-                            <td>{props[k]}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
-};
-
 interface RenderAssetDetailsProps {
     id: string;
     type: string;
@@ -252,7 +221,7 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                     </button>
                 </div>
             </div>
-            {renderAttributeTable(props.attributes)}
+            {AttributeTable(props.attributes)}
             <h3>Parts and components</h3>
             <table>
                 <thead>
