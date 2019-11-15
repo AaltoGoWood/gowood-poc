@@ -63,7 +63,7 @@ export const Breadcrumb = (props: BreadcrumbProps) => {
                 });
             })}
             {props.traversePath.map(node =>
-                navNodeView(node.type, (e: any) => {
+                navNodeView(`${node.type} (Id: ${node.id})`, (e: any) => {
                     e.preventDefault();
                     dispatchNavigateCommands(props.dispatchFn, node);
                 })
