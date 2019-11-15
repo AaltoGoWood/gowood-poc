@@ -19,9 +19,16 @@ export type Command<T = any> = {
     data?: T;
 };
 
-export type MapEventData = {
+export type MutateMapEventData = {
     type: 'ensure-tree' | 'move-to' | 'reset-markers';
+    data?: any;
     coords: { lng: number; lat: number };
+};
+
+export type MapEventData = {
+    type: 'map-object-clicked';
+    data?: any;
+    coords?: { lng: number; lat: number };
 };
 
 export interface Sources<State> {
@@ -30,6 +37,7 @@ export interface Sources<State> {
     state: StateSource<State>;
     dataQuery: Stream<any>;
     commandGateway: Stream<Command>;
+    map: Stream<MapEventData>;
 }
 
 export interface Sinks<State> {
@@ -40,5 +48,16 @@ export interface Sinks<State> {
     state?: Stream<Reducer<State>>;
     dataQuery?: Stream<{ type: string; id: string }>;
     commandGateway?: Stream<any>;
-    map?: Stream<Command<MapEventData[]>>;
+    map?: Stream<Command<MutateMapEventData[]>>;
+}
+
+export interface RouteProps {
+    id?: string;
+    type?: string;
+    qs?: any;
+}
+
+export interface RoutedComponentAcc<T = any> {
+    renderFn: (props: RouteProps) => (sources: Sources<T>) => Sinks<T>;
+    routeProps: RouteProps;
 }

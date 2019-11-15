@@ -3,29 +3,47 @@ import { VNode, DOMSource } from '@cycle/dom';
 import { RouterSource } from 'cyclic-router';
 import * as R from 'ramda';
 
-import { Sources, Sinks, Reducer, Command } from '../interfaces';
+import {
+    Sources,
+    Sinks,
+    Reducer,
+    Command,
+    RouteProps,
+    MutateMapEventData
+} from '../interfaces';
 
 export interface State {
-    buildingId?: any | undefined;
-    buildingDetails?: any | undefined;
-    assetDetails?: any | undefined;
+    rootId?: string;
+    rootDetails?: any;
+    leafId?: string;
+    leafDetails?: any;
 }
 export const defaultState: State = {
-    buildingId: undefined,
-    buildingDetails: undefined,
-    assetDetails: undefined
+    rootId: undefined,
+    rootDetails: undefined,
+    leafId: undefined,
+    leafDetails: undefined
 };
 
+interface QueryEntity {
+    id: string;
+    type: string;
+    queryDepth: number; // Remove once ready
+    traversePath: QueryEntity[];
+}
+
 interface DOMIntent {
-    link$: Stream<null>;
-    building$: Stream<any>;
+    rootDataQuery$: Stream<QueryEntity>;
     commandGateway$: Stream<Command>;
 }
 
-export function Building(props: any, sources: Sources<State>): Sinks<State> {
+export function Building(
+    props: RouteProps,
+    sources: Sources<State>
+): Sinks<State> {
     const { DOM, state, dataQuery, commandGateway }: Sources<State> = sources;
     const props$ = xs.of(props);
-    const { link$, building$, commandGateway$ }: DOMIntent = intent(
+    const { rootDataQuery$, commandGateway$ }: DOMIntent = intent(
         DOM,
         props$,
         commandGateway
@@ -33,26 +51,29 @@ export function Building(props: any, sources: Sources<State>): Sinks<State> {
 
     return {
         DOM: view(state.stream, commandGateway$),
-        state: model(building$, dataQuery, commandGateway$),
-        router: redirect(link$),
-        dataQuery: query(building$, commandGateway$),
+        state: model(rootDataQuery$, dataQuery, commandGateway$),
+        dataQuery: query(rootDataQuery$, commandGateway$),
         commandGateway: commandGateway$
     };
 }
 
 function query(
-    building$: Stream<string>,
+    rootDataQuery$: Stream<{ id: string; type: string }>,
     commandGateway$: Stream<Command>
 ): Stream<any> {
-    const buildingQuery$ = building$.map(id => ({ type: 'buildings', id }));
     const dataQueryCommands$ = commandGateway$
         .filter(({ type }) => type === 'show-building-assets')
-        .map(command => ({ type: command.data.dataType, id: command.id }));
-    return xs.merge(buildingQuery$, dataQueryCommands$);
+        .map(command => ({
+            type: command.data.type,
+            id: command.data.id,
+            queryDepth: 1,
+            traversePath: command.data.traversePath
+        }));
+    return xs.merge(rootDataQuery$, dataQueryCommands$);
 }
 
 function model(
-    building$: Stream<any>,
+    rootDataQuery$: Stream<QueryEntity>,
     dataQuery: Stream<any>,
     commandGateway$: Stream<Command>
 ): Stream<Reducer<State>> {
@@ -60,35 +81,40 @@ function model(
         prevState === undefined ? defaultState : prevState
     );
 
-    const addToState: (data: any) => Reducer<State> = data => state =>
-        R.merge(state || {}, data);
-    const buildingId$ = building$
-        .map(buildingId => ({ buildingId }))
+    const addToState: (data: any) => Reducer<State> = data => state => {
+        return R.merge(state || {}, data);
+    };
+
+    const rootId$ = rootDataQuery$
+        .map(({ id }) => ({ rootId: id }))
         .map(addToState);
 
-    const buildingDetails$ = dataQuery
-        .filter(res => res.req.type === 'buildings')
-        .map(data => addToState({ buildingDetails: data }));
+    const rootDetails$ = dataQuery
+        .filter(res => res.req.traversePath.length === 0)
+        .map(data => addToState({ rootDetails: data }));
 
-    const assetDetails$ = dataQuery
-        .filter(res => res.req.type === 'plywood')
-        .map(data => addToState({ assetDetails: data }));
+    const leafDetails$ = dataQuery
+        .filter(res => res.req.traversePath.length > 0)
+        .map(data => addToState({ leafDetails: data }));
 
     const resetBuildingAssets$ = commandGateway$
         .filter(cmd => cmd.type === 'reset-building-assets')
-        .map(state => addToState({ assetDetails: undefined }));
+        .map(state =>
+            addToState({ leafId: undefined, leafDetails: undefined })
+        );
 
     return xs.merge(
         init$,
-        buildingId$,
-        buildingDetails$,
-        assetDetails$,
+        rootId$,
+        rootDetails$,
+        leafDetails$,
         resetBuildingAssets$
     );
 }
 
 interface RenderBuildingDetailsProps {
     id: string;
+    type: string;
     rows: any[];
     dispatchFn: (e: Command) => void;
 }
@@ -129,8 +155,17 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
                                     e.preventDefault();
                                     props.dispatchFn({
                                         type: 'show-building-assets',
-                                        data: { dataType: row.type },
-                                        id: row.id
+                                        data: {
+                                            id: row.id,
+                                            type: row.type,
+                                            traversePath: [
+                                                {
+                                                    id: props.id,
+                                                    type: props.type,
+                                                    traversePath: []
+                                                }
+                                            ]
+                                        }
                                     });
                                 }}
                             >
@@ -146,9 +181,42 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
     );
 };
 
+interface RenderAttributeTableProps {
+    [key: string]: any;
+}
+const renderAttributeTable = (props: RenderAttributeTableProps) => {
+    const keys = Object.keys(props);
+    if (keys.length === 0) {
+        return <div id="attribute-panel" />;
+    }
+    return (
+        <div id="attribute-panel">
+            <h3>Entity properties</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {keys.map(k => (
+                        <tr>
+                            <td>{k}</td>
+                            <td>{props[k]}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
 interface RenderAssetDetailsProps {
     id: string;
     type: string;
+    parentTraversePath: QueryEntity[];
+    attributes: any;
     rows: any[];
     dispatchFn: (e: Command) => void;
 }
@@ -182,22 +250,39 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                     <button
                         className="gowood-button small"
                         onclick={(e: any) => {
-                            const cmd: Command = {
+                            e.preventDefault();
+                            const cmd: Command<MutateMapEventData[]> = {
                                 type: 'show-asset-origin',
                                 data: props.rows.map(row => ({
-                                    dataType: row.type,
-                                    coords: row.coords
+                                    type: 'ensure-tree' as any,
+                                    coords: row.coords,
+                                    data: {
+                                        id: row.id,
+                                        type: row.type,
+                                        traversePath: [
+                                            ...props.parentTraversePath,
+                                            {
+                                                id: props.id,
+                                                type: props.type,
+                                                traversePath:
+                                                    props.parentTraversePath
+                                            }
+                                        ]
+                                    }
                                 })),
                                 id: props.id
                             };
-                            e.preventDefault();
-                            props.dispatchFn(cmd);
+                            if (cmd.data && cmd.data.length > 0) {
+                                props.dispatchFn(cmd);
+                            }
                         }}
                     >
                         Show origins in map
                     </button>
                 </div>
             </div>
+            {renderAttributeTable(props.attributes)}
+            <h3>Parts and components</h3>
             <table>
                 <thead>
                     <tr>
@@ -211,18 +296,51 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                         return (
                             <tr
                                 onclick={(e: any) => {
-                                    const cmd: Command = {
+                                    e.preventDefault();
+                                    const showOriginCmd: Command<
+                                        MutateMapEventData[]
+                                    > = {
                                         type: 'show-asset-origin',
                                         data: [
                                             {
-                                                dataType: row.type,
-                                                coords: row.coords
+                                                type: 'ensure-tree',
+                                                coords: row.coords,
+                                                data: {
+                                                    id: row.id,
+                                                    type: row.type,
+                                                    traversePath: [
+                                                        ...props.parentTraversePath,
+                                                        {
+                                                            id: props.id,
+                                                            type: props.type,
+                                                            traversePath:
+                                                                props.parentTraversePath
+                                                        }
+                                                    ]
+                                                }
                                             }
-                                        ],
-                                        id: row.id
+                                        ]
                                     };
-                                    e.preventDefault();
-                                    props.dispatchFn(cmd);
+                                    const traverseCmd: Command = {
+                                        type: 'show-building-assets',
+                                        data: {
+                                            id: row.id,
+                                            type: row.type,
+                                            traversePath: [
+                                                ...props.parentTraversePath,
+                                                {
+                                                    id: props.id,
+                                                    type: props.type,
+                                                    traversePath:
+                                                        props.parentTraversePath
+                                                }
+                                            ]
+                                        }
+                                    };
+                                    if (row.coords) {
+                                        props.dispatchFn(showOriginCmd);
+                                    }
+                                    props.dispatchFn(traverseCmd);
                                 }}
                             >
                                 <td>{row.type}</td>
@@ -238,21 +356,21 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
 };
 
 interface RenderDetailsPanelsProps {
-    buildingDetailsFound: boolean;
-    assetDetailsFound: boolean;
-    buildingDetails: any;
-    assetDetails: any;
+    rootDetailsFound: boolean;
+    leafDetailsFound: boolean;
+    rootDetails: any;
+    leafDetails: any;
     dispatchFn: (e: any) => void;
 }
 function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
     const viewType: string =
-        props.buildingDetailsFound === undefined
+        props.rootDetailsFound === undefined
             ? 'loading'
-            : props.buildingDetailsFound === false
+            : props.rootDetailsFound === false
             ? 'building-not-found'
-            : props.buildingDetailsFound && !props.assetDetailsFound
+            : props.rootDetailsFound && !props.leafDetailsFound
             ? 'building-details'
-            : props.buildingDetailsFound && props.assetDetailsFound
+            : props.rootDetailsFound && props.leafDetailsFound
             ? 'asset-details'
             : 'error';
 
@@ -261,15 +379,18 @@ function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
             return <p>Building not found</p>;
         case 'building-details':
             return renderBuildingDetails({
-                id: props.buildingDetails.req.id,
-                rows: props.buildingDetails.data,
+                id: props.rootDetails.req.id,
+                type: props.rootDetails.req.type,
+                rows: props.rootDetails.data.rows,
                 dispatchFn: props.dispatchFn
             });
         case 'asset-details':
             return renderAssetDetails({
-                id: props.assetDetails.req.id,
-                type: props.assetDetails.req.type,
-                rows: props.assetDetails.data,
+                id: props.leafDetails.req.id,
+                type: props.leafDetails.req.type,
+                parentTraversePath: props.leafDetails.req.traversePath,
+                rows: props.leafDetails.data.rows,
+                attributes: props.leafDetails.data.attributes,
                 dispatchFn: props.dispatchFn
             });
         case 'loading':
@@ -290,12 +411,12 @@ function view(
             <div id="details-panel">
                 <h1>Details</h1>
                 {renderDetailsPanels({
-                    buildingDetailsFound:
-                        state.buildingDetails && state.buildingDetails.found,
-                    assetDetailsFound:
-                        state.assetDetails && state.assetDetails.found,
-                    buildingDetails: state.buildingDetails,
-                    assetDetails: state.assetDetails,
+                    rootDetailsFound:
+                        state.rootDetails && state.rootDetails.found,
+                    leafDetailsFound:
+                        state.leafDetails && state.leafDetails.found,
+                    rootDetails: state.rootDetails,
+                    leafDetails: state.leafDetails,
                     dispatchFn: dispatchFn
                 })}
             </div>
@@ -305,21 +426,17 @@ function view(
 
 function intent(
     DOM: DOMSource,
-    props: Stream<any>,
+    props: Stream<RouteProps>,
     commandGateway: Stream<Command>
 ): DOMIntent {
-    const link$ = xs.never();
-    // DOM.select('[data-action="navigate"]')
-    //     .events('click')
-    //     .mapTo(null);
-
-    // TODO: clean up later.
-    const building$ = props.map((data: any) => {
-        return data;
+    const rootDataQuery$ = props.map((data: RouteProps) => {
+        return {
+            id: data.id,
+            type: data.type,
+            queryDepth: 0,
+            traversePath: []
+        } as QueryEntity;
     });
-    return { link$, building$, commandGateway$: commandGateway };
-}
 
-function redirect(link$: Stream<any>): Stream<string> {
-    return link$.mapTo('/raw-material-map');
+    return { rootDataQuery$, commandGateway$: commandGateway };
 }
