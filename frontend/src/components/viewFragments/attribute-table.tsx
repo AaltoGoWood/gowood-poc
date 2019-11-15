@@ -1,7 +1,12 @@
+import { AttributesLayout } from '../../interfaces';
+
 export interface RenderAttributeTableProps {
     [key: string]: any;
 }
-export const AttributeTable = (props: RenderAttributeTableProps) => {
+export const AttributeTable = (
+    props: RenderAttributeTableProps,
+    layout: AttributesLayout
+) => {
     const keys = Object.keys(props);
     if (keys.length === 0) {
         return <div id="attribute-panel" />;
@@ -18,9 +23,9 @@ export const AttributeTable = (props: RenderAttributeTableProps) => {
                 </thead>
                 <tbody>
                     {keys.map(k => (
-                        <tr>
-                            <td>{k}</td>
-                            <td>{props[k]}</td>
+                        <tr className={layout.attributeTagFn(k)}>
+                            <td className="field">{k}</td>
+                            <td className="value">{props[k]}</td>
                         </tr>
                     ))}
                 </tbody>

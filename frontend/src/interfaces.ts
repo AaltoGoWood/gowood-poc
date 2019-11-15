@@ -71,3 +71,19 @@ export interface RoutedComponentAcc<T = any> {
     renderFn: (props: RouteProps) => (sources: Sources<T>) => Sinks<T>;
     routeProps: RouteProps;
 }
+
+export interface AttributesLayout {
+    attributeTagFn: (field: string) => string;
+}
+export interface RowsLayout {}
+export interface CommandsLayout {}
+export type VisualizationViewType = 'map' | 'building';
+export interface EntityLayout {
+    attributes: AttributesLayout;
+    rows: RowsLayout;
+    commands: CommandsLayout;
+    defaultView: VisualizationViewType;
+}
+export interface LayoutDirectiveCollection {
+    [type: string]: EntityLayout;
+}

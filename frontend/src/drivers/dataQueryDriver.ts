@@ -1,5 +1,14 @@
 import { Stream } from 'xstream';
 import any from 'ramda/es/any';
+import { string } from 'jsverify';
+import {
+    VisualizationViewType,
+    AttributesLayout,
+    RowsLayout,
+    CommandsLayout,
+    EntityLayout,
+    LayoutDirectiveCollection
+} from '../interfaces';
 
 export type Request = {
     type: string;
@@ -81,25 +90,60 @@ const data: Data = {
     }
 };
 
+const DefaultAttributesLayout = {
+    attributeTagFn: (field: string) => ''
+};
+
+function ToEntityLayout(
+    defaultView: VisualizationViewType,
+    attributes?: AttributesLayout,
+    rows?: RowsLayout,
+    commands?: CommandsLayout
+): EntityLayout {
+    return {
+        attributes: { ...DefaultAttributesLayout, ...attributes },
+        rows: rows || {},
+        defaultView: defaultView || 'map',
+        commands: commands || {}
+    };
+}
+
+const layoutDirectives: LayoutDirectiveCollection = {
+    building: ToEntityLayout('building'),
+    plywood: ToEntityLayout('map'),
+    'tree-trunk': ToEntityLayout('map', {
+        attributeTagFn: (field: string) => {
+            switch (field) {
+                case 'Timestamp':
+                    return 'fake-data';
+                default:
+                    return '';
+            }
+        }
+    })
+};
+
 export function dataQueryDriver(
     dataRequest$: Stream<Request>
 ): Stream<Response> {
-    return dataRequest$.map((req: Request) => {
-        const { type, id } = req;
-        const responseData: any = (data[type] && data[type][id]) as any;
+    return dataRequest$
+        .map((req: Request) => {
+            const { type, id } = req;
+            const responseData: any = (data[type] && data[type][id]) as any;
 
-        if (responseData !== undefined) {
-            return {
-                req,
-                found: true,
-                data: responseData
-            };
-        } else {
-            return {
-                req,
-                found: false,
-                data: undefined
-            };
-        }
-    });
+            if (responseData !== undefined) {
+                return {
+                    req,
+                    found: true,
+                    data: responseData
+                };
+            } else {
+                return {
+                    req,
+                    found: false,
+                    data: undefined
+                };
+            }
+        })
+        .map(res => ({ ...res, layout: layoutDirectives[res.req.type] }));
 }
