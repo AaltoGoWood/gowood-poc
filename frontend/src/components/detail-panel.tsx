@@ -9,11 +9,13 @@ import {
     Command,
     RouteProps,
     MutateMapEventData,
-    QueryEntity
+    QueryEntity,
+    EntityLayout
 } from '../interfaces';
 
 import { Breadcrumb } from './viewFragments/breadcrumb';
 import { AttributeTable } from './viewFragments/attribute-table';
+
 export interface State {
     rootId?: string;
     rootDetails?: any;
@@ -173,6 +175,7 @@ interface RenderAssetDetailsProps {
     parentTraversePath: QueryEntity[];
     attributes: any;
     rows: any[];
+    layout: EntityLayout;
     dispatchFn: (e: Command) => void;
 }
 const renderAssetDetails = (props: RenderAssetDetailsProps) => {
@@ -221,7 +224,7 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                     </button>
                 </div>
             </div>
-            {AttributeTable(props.attributes)}
+            {AttributeTable(props.attributes, props.layout.attributes)}
             <h3>Parts and components</h3>
             <table>
                 <thead>
@@ -331,6 +334,7 @@ function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
                 parentTraversePath: props.leafDetails.req.traversePath,
                 rows: props.leafDetails.data.rows,
                 attributes: props.leafDetails.data.attributes,
+                layout: props.leafDetails.layout as EntityLayout,
                 dispatchFn: props.dispatchFn
             });
         case 'loading':

@@ -96,6 +96,13 @@ table {
       }
       vertical-align: middle;    
    }
+   tr.fake-data td.value {
+      // background-color: red !important;
+      // background-attachment: fixed;
+      background-repeat: no-repeat;
+      background-position: right;
+      background-image: url('fakeIcon-small.png');
+   }
 }
 
 @media screen and (max-width: 700px) {   
