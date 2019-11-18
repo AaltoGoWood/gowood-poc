@@ -77,7 +77,10 @@ export interface AttributesLayout {
     attributeTagFn: (field: string) => string;
 }
 export interface RowsLayout {}
-export interface CommandsLayout {}
+export interface CommandsLayout {
+    showOrigins?: boolean;
+    [key: string]: any;
+}
 export type VisualizationViewType = 'map' | 'building';
 export interface EntityLayout {
     attributes: AttributesLayout;
