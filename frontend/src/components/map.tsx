@@ -195,6 +195,7 @@ export const initMap = () => {
 
         map.on('click', layer, layerClickHandlers[layer]);
     }
+    (window as any)['map'] = map;
 };
 
 // Handle events coming outside map component
@@ -236,6 +237,10 @@ const handlerStrategy: Dictionary<MapDataEventHandler> = {
         markers.push(
             addMarkerTo([e.coords.lng, e.coords.lat], onClickEventData)
         );
+    },
+    refresh: () => {
+        console.log('resize');
+        map.resize();
     }
 };
 

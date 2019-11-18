@@ -69,3 +69,30 @@ body {
       background-color: white;
    }
 }
+
+/* Visibility */ 
+#map {
+   display: none;
+}
+
+body.map {
+   #map {
+      display: block;
+      position: relative;
+      height: 100%;
+      width: 100%;
+  }
+}
+
+#building {
+   display: none;
+}
+
+body.building {
+   #building {
+      display: block;
+      position: relative;
+      height: 100%;
+      width: 100%;
+  }
+}
