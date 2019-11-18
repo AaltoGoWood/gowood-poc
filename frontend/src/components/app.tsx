@@ -23,7 +23,9 @@ import {
 } from './detail-panel';
 import { Dictionary } from 'ramda';
 import view from 'ramda/es/view';
-
+import { DataResponse } from '../drivers/dataQueryDriver';
+import { State as LayoutState } from '../drivers/layoutDriver';
+import { Layout } from 'mapbox-gl';
 export interface State {
     mapSearch?: LandingPageState;
     building?: DetailPanelState;
@@ -57,13 +59,35 @@ export function App(sources: Sources<State>): Sinks<State> {
         }
     });
 
-    const layout$ = sources.router
+    const layoutFromRoute$: Stream<LayoutState> = sources.router
         .define({
             '/browse-building': { map: true, building: false },
-            '/traverse/:type/:id/': { map: true, building: false },
             '/traverse-3d/:id': { map: false, building: true }
         })
         .map((route: any) => route.value);
+
+    const layoutData$: Stream<LayoutState> = sources.dataQuery.map(
+        (l: DataResponse) => {
+            switch (l.layout.defaultView) {
+                case 'building':
+                    return { map: false, building: true };
+                case 'map':
+                default:
+                    return { map: true, building: false };
+            }
+        }
+    );
+    const layoutFromCommand$: Stream<
+        LayoutState
+    > = sources.commandGateway
+        .filter(cmd => cmd.type === 'show-asset-origin')
+        .mapTo({ map: true, building: false });
+
+    const layout$: Stream<LayoutState> = xs.merge(
+        layoutFromRoute$,
+        layoutData$,
+        layoutFromCommand$
+    );
 
     const componentSinks$: Stream<Sinks<State>> = match$
         .filter(({ path }: any) => path)
@@ -117,12 +141,18 @@ export function App(sources: Sources<State>): Sinks<State> {
     const { dataQuery } = sinks;
     const $showAssetOrigin = mapCommandsToMapEvents(commandGateway$);
 
+    const refreshMap$ = layout$
+        .filter(l => l.map)
+        .mapTo({ type: 'refresh-map', data: [{ type: 'refresh' }] } as Command<
+            MutateMapEventData[]
+        >);
+
     return {
         ...sinks,
         dataQuery: xs.merge(dataQuery, mapDataQuery$),
         layout: layout$,
         commandGateway: commandGateway$,
-        map: $showAssetOrigin,
+        map: xs.merge($showAssetOrigin, refreshMap$),
         router: xs.merge(
             redirect$,
             firstTimePageLoad$,
