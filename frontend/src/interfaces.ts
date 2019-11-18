@@ -14,7 +14,8 @@ export type Command<T = any> = {
         | 'show-building-assets'
         | 'reset-building-assets'
         | 'show-asset-origin'
-        | 'navigate-to-building-browser';
+        | 'navigate-to-building-browser'
+        | 'refresh-map';
     id?: string;
     data?: T;
 };
@@ -30,9 +31,9 @@ export interface QueryEntity {
 }
 
 export type MutateMapEventData = {
-    type: 'ensure-tree' | 'move-to' | 'reset-markers';
+    type: 'ensure-tree' | 'move-to' | 'reset-markers' | 'refresh';
     data?: any;
-    coords: { lng: number; lat: number };
+    coords?: { lng: number; lat: number };
 };
 
 export type MapEventData = {

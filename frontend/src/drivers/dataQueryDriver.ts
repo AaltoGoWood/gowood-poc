@@ -10,18 +10,19 @@ import {
     LayoutDirectiveCollection
 } from '../interfaces';
 
-export type Request = {
+export type DataRequest = {
     type: string;
     id: string;
 };
 
-export type Response = {
-    req: Request;
+export type DataResponse = {
+    req: DataRequest;
     found: boolean;
+    layout: EntityLayout;
     data: any | undefined;
 };
 
-interface Data {
+interface FakeDatabase {
     building: {
         [id: string]: any;
     };
@@ -30,7 +31,7 @@ interface Data {
 
 const ToEntity = (attributes: any, ...rows: any) => ({ attributes, rows });
 
-const data: Data = {
+const data: FakeDatabase = {
     building: {
         '746103': ToEntity(
             {},
@@ -110,7 +111,7 @@ function ToEntityLayout(
 
 const layoutDirectives: LayoutDirectiveCollection = {
     building: ToEntityLayout('building'),
-    plywood: ToEntityLayout('map'),
+    plywood: ToEntityLayout('building'),
     'tree-trunk': ToEntityLayout('map', {
         attributeTagFn: (field: string) => {
             switch (field) {
@@ -124,10 +125,10 @@ const layoutDirectives: LayoutDirectiveCollection = {
 };
 
 export function dataQueryDriver(
-    dataRequest$: Stream<Request>
-): Stream<Response> {
+    dataRequest$: Stream<DataRequest>
+): Stream<DataResponse> {
     return dataRequest$
-        .map((req: Request) => {
+        .map((req: DataRequest) => {
             const { type, id } = req;
             const responseData: any = (data[type] && data[type][id]) as any;
 
