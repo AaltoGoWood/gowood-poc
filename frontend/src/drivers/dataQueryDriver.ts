@@ -1,3 +1,4 @@
+import { Command } from './../interfaces';
 import { Stream } from 'xstream';
 import any from 'ramda/es/any';
 import { string } from 'jsverify';
@@ -111,7 +112,9 @@ function ToEntityLayout(
 
 const layoutDirectives: LayoutDirectiveCollection = {
     building: ToEntityLayout('building'),
-    plywood: ToEntityLayout('building'),
+    plywood: ToEntityLayout('building', undefined, undefined, {
+        showOrigins: true
+    }),
     'tree-trunk': ToEntityLayout('map', {
         attributeTagFn: (field: string) => {
             switch (field) {
