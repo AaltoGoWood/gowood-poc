@@ -190,38 +190,42 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                     {props.type} (id: {props.id})
                 </h3>
                 <div id="detail-actions">
-                    <button
-                        className="gowood-button small"
-                        onclick={(e: any) => {
-                            e.preventDefault();
-                            const cmd: Command<MutateMapEventData[]> = {
-                                type: 'show-asset-origin',
-                                data: props.rows.map(row => ({
-                                    type: 'ensure-tree' as any,
-                                    coords: row.coords,
-                                    data: {
-                                        id: row.id,
-                                        type: row.type,
-                                        traversePath: [
-                                            ...props.parentTraversePath,
-                                            {
-                                                id: props.id,
-                                                type: props.type,
-                                                traversePath:
-                                                    props.parentTraversePath
+                    {[props.layout.commands.showOrigins]
+                        .filter((data: boolean) => data)
+                        .map(() => (
+                            <button
+                                className="gowood-button small"
+                                onclick={(e: any) => {
+                                    e.preventDefault();
+                                    const cmd: Command<MutateMapEventData[]> = {
+                                        type: 'show-asset-origin',
+                                        data: props.rows.map(row => ({
+                                            type: 'ensure-tree' as any,
+                                            coords: row.coords,
+                                            data: {
+                                                id: row.id,
+                                                type: row.type,
+                                                traversePath: [
+                                                    ...props.parentTraversePath,
+                                                    {
+                                                        id: props.id,
+                                                        type: props.type,
+                                                        traversePath:
+                                                            props.parentTraversePath
+                                                    }
+                                                ]
                                             }
-                                        ]
+                                        })),
+                                        id: props.id
+                                    };
+                                    if (cmd.data && cmd.data.length > 0) {
+                                        props.dispatchFn(cmd);
                                     }
-                                })),
-                                id: props.id
-                            };
-                            if (cmd.data && cmd.data.length > 0) {
-                                props.dispatchFn(cmd);
-                            }
-                        }}
-                    >
-                        Show origins in map
-                    </button>
+                                }}
+                            >
+                                Show origins in map
+                            </button>
+                        ))}
                 </div>
             </div>
             {AttributeTable(props.attributes, props.layout.attributes)}
