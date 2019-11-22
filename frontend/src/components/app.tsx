@@ -48,15 +48,13 @@ export function App(sources: Sources<State>): Sinks<State> {
                 traversePath: e.data.traversePath
             };
         });
-    console.log('sources.map ', map$);
 
+    const dataQueryWithoutPlywood$ = sources.dataQuery.filter(
+        query => query.req.type !== 'plywood'
+    );
     const buildingDataQuery$ = sources.building
         .filter(e => e.type === 'building-clicked')
-        .compose(sampleCombine(sources.dataQuery))
-        .filter(
-            ([dataReq, parentResponse]: [BuildingEventData, DataResponse]) =>
-                dataReq.data.id !== parentResponse.req.id
-        )
+        .compose(sampleCombine(dataQueryWithoutPlywood$))
         .map(
             ([dataReq, parentResponse]: [BuildingEventData, DataResponse]) => ({
                 ...dataReq.data,
