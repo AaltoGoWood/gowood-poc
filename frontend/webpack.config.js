@@ -15,6 +15,13 @@ module.exports = {
                 use: {
                     loader: 'json-loader'
                 }
+            },
+            {
+                test: /\.json$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'json-loader'
+                }
             }
         ]
     },
@@ -22,5 +29,15 @@ module.exports = {
         filename: 'bundle.[hash].js',
         path: appPath('build'),
         publicPath: '/'
+    },
+    node: {
+        fs: 'empty',
+        net: 'empty',
+        tls: 'empty'
+    },
+    devServer: {
+        proxy: {
+            '/api': 'http://127.0.0.1:3000/api'
+        }
     }
 };

@@ -1,7 +1,7 @@
 (ns query-service.model.fake-db)
 
 (defn ->entity [attributes & rows]
-  { :attributes attributes :rows rows }
+  { :attributes attributes :rows (or rows [])}
   )
 
 (def db {
