@@ -6,7 +6,8 @@ import {
     Renderer,
     AmbientLight,
     DirectionalLight,
-    Object3D
+    Object3D,
+    Vector2
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
@@ -16,12 +17,51 @@ let controls: OrbitControls;
 let hlight: AmbientLight, directionalLight: DirectionalLight;
 let loader: GLTFLoader;
 
+const raycaster = new THREE.Raycaster();
+const mouse: Vector2 = new THREE.Vector2();
+let intersections: THREE.Intersection[];
+
 const container: HTMLDivElement = document.getElementById(
     'building'
 ) as HTMLDivElement;
 
+function onMouse(event: MouseEvent): void {
+    // calculate mouse position in normalized device coordinates
+    // (-1 to +1) for both components.
+    // The X coord needs to be adjusted to take sidepanel into account
+    mouse.x =
+        ((event.clientX - container.offsetLeft) / container.clientWidth) * 2 -
+        1;
+    mouse.y = -(event.clientY / container.clientHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    // calculate objects intersecting the picking ray
+    intersections = raycaster.intersectObjects(scene.children, true);
+
+    const mouseMsg: String =
+        'event.x: ' +
+        event.x +
+        ' event.y: ' +
+        event.y +
+        ' x: ' +
+        mouse.x +
+        ' y: ' +
+        mouse.y;
+    if (intersections.length > 0) {
+        console.log(
+            mouseMsg + ' And another one HITS THE BUILDING!',
+            intersections
+        );
+        console.log();
+    } else {
+        console.log(mouseMsg);
+    }
+}
+
 export function init3d(): void {
     console.log('>> init3d()');
+    console.log('>> 3D model container ', container);
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xdddddd);
@@ -57,6 +97,7 @@ export function init3d(): void {
     loader.load('/models/blue-building/scene.gltf', function(gltf) {
         let model: Object3D;
         model = gltf.scene.children[0];
+        console.log('model in loading', model);
         //model.scale.set(1.5, 1.5, 1.5); //Scale model if necessary
         scene.add(gltf.scene);
         animate();
@@ -66,4 +107,11 @@ export function init3d(): void {
 export function animate(): void {
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
+}
+
+export function registerMouseEvent(): void {
+    console.log('registering 3D-model mouse event listener');
+    //window.addEventListener( 'mousemove', onMouse, false );
+    //container.addEventListener( 'mousemove', onMouse, false );
+    container.addEventListener('click', onMouse, false);
 }
