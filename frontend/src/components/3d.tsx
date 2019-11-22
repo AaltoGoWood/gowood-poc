@@ -7,7 +7,8 @@ import {
     AmbientLight,
     DirectionalLight,
     Object3D,
-    Vector2
+    Vector2,
+    Vector3
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
@@ -26,9 +27,39 @@ const container: HTMLDivElement = document.getElementById(
     'building'
 ) as HTMLDivElement;
 
+const frontWall1 = new Vector3(-115, 170, 225);
+const frontWall2 = new Vector3(-60, 170, 225);
+const frontWall3 = new Vector3(75, 170, 225);
+const plywoodSheets: Object3D[] = [
+    createPlywoodSheet('p123', frontWall1),
+    createPlywoodSheet('p124', frontWall2),
+    createPlywoodSheet('p125', frontWall3)
+];
+
+function createPlywoodSheet(id: String, position: Vector3): THREE.Mesh {
+    const width: number = 50; //Width along the X axis
+    const height: number = 140; //Height along the Y axis
+    const widthSegments: number = 32; //Optional. Default is 1.
+    const heigthSegments: number = 1; //Optional. Default is 1.
+    const geometry = new THREE.PlaneGeometry(
+        width,
+        height,
+        widthSegments,
+        heigthSegments
+    );
+    const material = new THREE.MeshBasicMaterial({
+        color: 0xffff00,
+        side: THREE.DoubleSide
+    });
+    const plane = new THREE.Mesh(geometry, material);
+    plane.userData = { id: id };
+
+    plane.position.set(position.x, position.y, position.z);
+    return plane;
+}
+
 export function init3d(): void {
-    console.log('>> init3d()');
-    console.log('>> 3D model container ', container);
+    console.log('>> init3d() container: ', container);
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xdddddd);
@@ -52,8 +83,11 @@ export function init3d(): void {
     directionalLight.castShadow = true;
     scene.add(directionalLight);
 
+    scene.add(...plywoodSheets);
+
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
+
     if (container) {
         container.appendChild(renderer.domElement);
     }
@@ -96,22 +130,26 @@ function onMouse(event: MouseEvent): void {
     raycaster.setFromCamera(mouse, camera);
 
     // calculate objects intersecting the picking ray
-    intersections = raycaster.intersectObjects(scene.children, true);
+    intersections = raycaster.intersectObjects(plywoodSheets, true);
 
     const mouseMsg: String = `event.x:${event.x} event.y:${event.y} x:${mouse.x} y:${mouse.y}`;
     if (intersections.length > 0) {
-        console.log(
-            `${mouseMsg} And another one HITS THE BUILDING!`,
-            intersections
-        );
-        const eventData: BuildingEventData = {
-            type: 'building-clicked',
-            data: {
-                type: 'plywood',
-                id: 'p123'
-            }
-        };
-        dispatchBuildingEvent(eventData);
+        const plywoodId: String = intersections[0].object.userData.id;
+        if (plywoodId) {
+            console.log('clicked plywood sheet id: ' + plywoodId);
+            console.log(
+                `${mouseMsg} And another one HITS THE TARGET!`,
+                intersections
+            );
+            const eventData: BuildingEventData = {
+                type: 'building-clicked',
+                data: {
+                    type: 'plywood',
+                    id: plywoodId
+                }
+            };
+            dispatchBuildingEvent(eventData);
+        }
     } else {
         console.log(mouseMsg);
     }
