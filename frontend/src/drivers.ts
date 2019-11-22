@@ -6,6 +6,7 @@ import switchPath from 'switch-path';
 import { layoutDriver } from './drivers/layoutDriver';
 import { dataQueryDriver } from './drivers/dataQueryDriver';
 import { mapDriver } from './drivers/mapDriver';
+import { buildingDriver } from './drivers/buildingDriver';
 
 import { Component } from './interfaces';
 
@@ -14,7 +15,8 @@ const driversFactories: any = {
     history: () => makeHistoryDriver(),
     layout: () => layoutDriver,
     dataQuery: () => dataQueryDriver,
-    map: () => mapDriver
+    map: () => mapDriver,
+    building: () => buildingDriver
 };
 
 export function getDrivers(): any {

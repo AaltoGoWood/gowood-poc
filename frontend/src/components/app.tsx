@@ -3,6 +3,7 @@ import { VNode, DOMSource } from '@cycle/dom';
 import { extractSinks } from 'cyclejs-utils';
 import isolate from '@cycle/isolate';
 import * as qs from 'query-string';
+import sampleCombine from 'xstream/extra/sampleCombine';
 
 import { driverNames } from '../drivers';
 import {
@@ -13,7 +14,8 @@ import {
     Command,
     MutateMapEventData,
     RoutedComponentAcc,
-    RouteProps
+    RouteProps,
+    BuildingEventData
 } from '../interfaces';
 
 import { LandingPanel, State as LandingPageState } from './landing-panel';
@@ -23,7 +25,7 @@ import {
 } from './detail-panel';
 import { Dictionary } from 'ramda';
 import view from 'ramda/es/view';
-import { DataResponse } from '../drivers/dataQueryDriver';
+import { DataResponse, DataRequest } from '../drivers/dataQueryDriver';
 import { State as LayoutState } from '../drivers/layoutDriver';
 import { Layout } from 'mapbox-gl';
 export interface State {
@@ -46,6 +48,24 @@ export function App(sources: Sources<State>): Sinks<State> {
                 traversePath: e.data.traversePath
             };
         });
+    console.log('sources.map ', map$);
+
+    const buildingDataQuery$ = sources.building
+        .filter(e => e.type === 'building-clicked')
+        .compose(sampleCombine(sources.dataQuery))
+        .filter(
+            ([dataReq, parentResponse]: [BuildingEventData, DataResponse]) =>
+                dataReq.data.id !== parentResponse.req.id
+        )
+        .map(
+            ([dataReq, parentResponse]: [BuildingEventData, DataResponse]) => ({
+                ...dataReq.data,
+                traversePath: [
+                    ...parentResponse.req.traversePath,
+                    parentResponse.req
+                ]
+            })
+        );
 
     const match$ = sources.router.define({
         '/browse-building': isolate(LandingPanel, 'map-search'),
@@ -149,7 +169,7 @@ export function App(sources: Sources<State>): Sinks<State> {
 
     return {
         ...sinks,
-        dataQuery: xs.merge(dataQuery, mapDataQuery$),
+        dataQuery: xs.merge(dataQuery, mapDataQuery$, buildingDataQuery$),
         layout: layout$,
         commandGateway: commandGateway$,
         map: xs.merge($showAssetOrigin, refreshMap$),
