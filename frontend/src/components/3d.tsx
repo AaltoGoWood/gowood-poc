@@ -47,10 +47,15 @@ function createPlywoodSheet(id: String, position: Vector3): THREE.Mesh {
         widthSegments,
         heigthSegments
     );
+    const texture: THREE.Texture = THREE.ImageUtils.loadTexture(
+        '/images/plywood_texture.jpg'
+    );
     const material = new THREE.MeshBasicMaterial({
         color: 0xffff00,
-        side: THREE.DoubleSide
+        side: THREE.DoubleSide,
+        map: texture
     });
+
     const plane = new THREE.Mesh(geometry, material);
     plane.userData = { id: id };
 
