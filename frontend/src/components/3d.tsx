@@ -11,6 +11,7 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { BuildingEventData } from './../interfaces';
 
 let scene: Scene, camera: Camera, renderer: Renderer;
 let controls: OrbitControls;
@@ -24,40 +25,6 @@ let intersections: THREE.Intersection[];
 const container: HTMLDivElement = document.getElementById(
     'building'
 ) as HTMLDivElement;
-
-function onMouse(event: MouseEvent): void {
-    // calculate mouse position in normalized device coordinates
-    // (-1 to +1) for both components.
-    // The X coord needs to be adjusted to take sidepanel into account
-    mouse.x =
-        ((event.clientX - container.offsetLeft) / container.clientWidth) * 2 -
-        1;
-    mouse.y = -(event.clientY / container.clientHeight) * 2 + 1;
-
-    raycaster.setFromCamera(mouse, camera);
-
-    // calculate objects intersecting the picking ray
-    intersections = raycaster.intersectObjects(scene.children, true);
-
-    const mouseMsg: String =
-        'event.x: ' +
-        event.x +
-        ' event.y: ' +
-        event.y +
-        ' x: ' +
-        mouse.x +
-        ' y: ' +
-        mouse.y;
-    if (intersections.length > 0) {
-        console.log(
-            mouseMsg + ' And another one HITS THE BUILDING!',
-            intersections
-        );
-        console.log();
-    } else {
-        console.log(mouseMsg);
-    }
-}
 
 export function init3d(): void {
     console.log('>> init3d()');
@@ -107,6 +74,47 @@ export function init3d(): void {
 export function animate(): void {
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
+}
+
+function dispatchBuildingEvent(eventData?: BuildingEventData): void {
+    console.log('>> dispatchBuildingEvent', eventData);
+    const event = new CustomEvent<BuildingEventData>('building-event', {
+        detail: eventData
+    });
+    document.body.dispatchEvent(event);
+}
+
+function onMouse(event: MouseEvent): void {
+    // calculate mouse position in normalized device coordinates
+    // (-1 to +1) for both components.
+    // The X coord needs to be adjusted to take sidepanel into account
+    mouse.x =
+        ((event.clientX - container.offsetLeft) / container.clientWidth) * 2 -
+        1;
+    mouse.y = -(event.clientY / container.clientHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    // calculate objects intersecting the picking ray
+    intersections = raycaster.intersectObjects(scene.children, true);
+
+    const mouseMsg: String = `event.x:${event.x} event.y:${event.y} x:${mouse.x} y:${mouse.y}`;
+    if (intersections.length > 0) {
+        console.log(
+            `${mouseMsg} And another one HITS THE BUILDING!`,
+            intersections
+        );
+        const eventData: BuildingEventData = {
+            type: 'building-clicked',
+            data: {
+                type: 'plywood',
+                id: 'p123'
+            }
+        };
+        dispatchBuildingEvent(eventData);
+    } else {
+        console.log(mouseMsg);
+    }
 }
 
 export function registerMouseEvent(): void {

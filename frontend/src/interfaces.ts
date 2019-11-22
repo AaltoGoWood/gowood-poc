@@ -42,6 +42,11 @@ export type MapEventData = {
     coords?: { lng: number; lat: number };
 };
 
+export type BuildingEventData = {
+    type: 'building-clicked';
+    data?: any;
+};
+
 export interface Sources<State> {
     DOM: DOMSource;
     router: RouterSource;
@@ -49,6 +54,7 @@ export interface Sources<State> {
     dataQuery: Stream<any>;
     commandGateway: Stream<Command>;
     map: Stream<MapEventData>;
+    building: Stream<BuildingEventData>;
 }
 
 export interface Sinks<State> {
@@ -60,6 +66,7 @@ export interface Sinks<State> {
     dataQuery?: Stream<{ type: string; id: string }>;
     commandGateway?: Stream<any>;
     map?: Stream<Command<MutateMapEventData[]>>;
+    building?: Stream<Command<BuildingEventData[]>>;
 }
 
 export interface RouteProps {

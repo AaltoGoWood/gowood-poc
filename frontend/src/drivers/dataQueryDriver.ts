@@ -16,6 +16,7 @@ import reduceWhile from 'ramda/es/reduceWhile';
 export type DataRequest = {
     type: string;
     id: string;
+    traversePath: DataRequest[];
 };
 
 export type DataResponse = {
