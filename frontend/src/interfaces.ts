@@ -43,7 +43,7 @@ export type MapEventData = {
 };
 
 export type BuildingEventData = {
-    type: 'building-clicked';
+    type: 'building-clicked' | 'mouse-enter-plywood' | 'mouse-leave-plywood';
     data?: any;
 };
 
