@@ -229,13 +229,8 @@ document.body.addEventListener(
     }
 );
 
-export function registerMouseEvent(): void {
-    console.log('registering 3D-model mouse event listener');
-    //window.addEventListener( 'mousemove', onMouse, false );
-    //container.addEventListener( 'mousemove', onMouse, false );
-    container.addEventListener(
-        'click',
-        curry(onMouse)(dispatchPlywoodClicked),
-        false
-    );
-}
+container.addEventListener(
+    'click',
+    curry(onMouse)(dispatchPlywoodClicked),
+    false
+);
