@@ -3,7 +3,7 @@ import { getDrivers, wrapMain } from './drivers';
 import { Component } from './interfaces';
 import { App } from './components/app';
 import { initMap } from './components/map';
-import { init3d, animate, registerMouseEvent } from './components/3d';
+import { init3d } from './components/3d';
 
 const main: Component<any> = wrapMain(App);
 
@@ -14,5 +14,4 @@ window.addEventListener('load', () => {
     console.log('loading map and 3D model');
     initMap();
     init3d();
-    registerMouseEvent();
 });

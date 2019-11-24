@@ -66,7 +66,6 @@ export interface Sinks<State> {
     dataQuery?: Stream<{ type: string; id: string }>;
     commandGateway?: Stream<any>;
     map?: Stream<Command<MutateMapEventData[]>>;
-    building?: Stream<Command<BuildingEventData[]>>;
 }
 
 export interface RouteProps {
