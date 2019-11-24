@@ -10,7 +10,8 @@ import {
     RouteProps,
     MutateMapEventData,
     QueryEntity,
-    EntityLayout
+    EntityLayout,
+    BuildingEventData
 } from '../interfaces';
 
 import { Breadcrumb } from './viewFragments/breadcrumb';
@@ -115,6 +116,35 @@ interface RenderBuildingDetailsProps {
     rows: any[];
     dispatchFn: (e: Command) => void;
 }
+
+function dispatchBuildingEvent(eventData?: BuildingEventData): void {
+    console.log('>> dispatchBuildingEvent', eventData);
+    const event = new CustomEvent<BuildingEventData>('building-event', {
+        detail: eventData
+    });
+    document.body.dispatchEvent(event);
+}
+
+function onMouseEnterPlywood(plywoodId: string): void {
+    dispatchBuildingEvent({
+        type: 'mouse-enter-plywood',
+        data: {
+            type: 'plywood',
+            id: plywoodId
+        }
+    });
+}
+
+function onMouseLeavePlywood(plywoodId: string): void {
+    dispatchBuildingEvent({
+        type: 'mouse-leave-plywood',
+        data: {
+            type: 'plywood',
+            id: plywoodId
+        }
+    });
+}
+
 const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
     return (
         <div id="root-details" className="detail-table-borders">
@@ -139,6 +169,12 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
                         return (
                             <tr
                                 id={`asset-${row.type}-id-${row.id}`}
+                                onmouseenter={(e: any) =>
+                                    onMouseEnterPlywood(row.id)
+                                }
+                                onmouseleave={(e: any) =>
+                                    onMouseLeavePlywood(row.id)
+                                }
                                 onclick={(e: any) => {
                                     e.preventDefault();
                                     props.dispatchFn({
