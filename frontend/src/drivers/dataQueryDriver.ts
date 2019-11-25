@@ -14,6 +14,7 @@ import {
 export type DataRequest = {
     type: string;
     id: string;
+    traversePath: DataRequest[];
 };
 
 export type DataResponse = {
