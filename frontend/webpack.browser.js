@@ -6,6 +6,7 @@ const appPath = (...names) => path.join(process.cwd(), ...names);
 module.exports = {
     node: {
         fs: 'empty',
-        tls: 'empty'
+        tls: 'empty',
+        net: 'empty'
     }
 };
