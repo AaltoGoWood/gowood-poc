@@ -11,6 +11,7 @@
    [query-service.middleware.formats :as formats]
    [query-service.middleware.exception :as exception]
    [query-service.model.fake-db :as fake-db]
+   [query-service.model.ogre-db :as ogre-db]
    [ring.util.http-response :refer :all]
    [clojure.spec.alpha :as s]
    [ring.util.response :refer [redirect]]
@@ -74,6 +75,7 @@
             :handler (fn [{:keys [parameters]}]
                        (let [op (get-in parameters [:path :operation])
                              cmd-body (get-in parameters [:body])]
-                       (ok (fake-db/apply-command op cmd-body))))}}     
+                         
+                         (ok (ogre-db/apply-command op cmd-body))))}}     
      ]]])
 
