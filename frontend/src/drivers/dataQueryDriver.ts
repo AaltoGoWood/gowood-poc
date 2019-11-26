@@ -1,5 +1,3 @@
-import { DataResponse } from './dataQueryDriver';
-import { Command } from './../interfaces';
 import { Stream } from 'xstream';
 import {
     VisualizationViewType,
@@ -9,8 +7,6 @@ import {
     EntityLayout,
     LayoutDirectiveCollection
 } from '../interfaces';
-import { ifError } from 'assert';
-import reduceWhile from 'ramda/es/reduceWhile';
 
 export type DataRequest = {
     type: string;
@@ -25,9 +21,29 @@ export type DataResponse = {
     data: any | undefined;
 };
 
+const labelTranslate: { [k: string]: string } = {
+    producer: 'Producer',
+    length: 'Length',
+    trunkWidth: 'Trunk width',
+    coords: 'Coordinates',
+    speciesOfTree: 'Species of tree',
+    timestamp: 'Timestamp'
+};
+
+const valueFormat: {
+    __identity__: (v: any) => string;
+    [k: string]: (v: any) => string;
+} = {
+    __identity__: v => v as string,
+    coords: value => `${value['lng']}; ${value['lat']}`
+};
+
 const DefaultAttributesLayout = {
     attributeTagFn: (field: string) => '',
-    shouldShowField: (field: string) => !['id', 'type'].some(f => field === f)
+    shouldShowField: (field: string) => !['id', 'type'].some(f => field === f),
+    formatLabel: (field: string) => labelTranslate[field] || field,
+    formatValue: (field: string, value: any) =>
+        (valueFormat[field] || valueFormat.__identity__)(value)
 };
 
 function ToEntityLayout(
@@ -52,7 +68,7 @@ const layoutDirectives: LayoutDirectiveCollection = {
     'tree-trunk': ToEntityLayout('map', {
         attributeTagFn: (field: string) => {
             switch (field) {
-                case 'Timestamp':
+                case 'timestamp':
                     return 'fake-data';
                 default:
                     return '';
