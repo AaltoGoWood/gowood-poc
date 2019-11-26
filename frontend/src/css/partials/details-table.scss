@@ -78,7 +78,8 @@ table {
       &:nth-child(2n+1) { background-color: lighten($baseColor, 55%) }
    }
 
-   tbody tr:hover {     
+   tbody tr:hover,
+   tbody tr.focus {     
       &:nth-child(2n) { background-color: lighten($baseColor, 30%)  }
       &:nth-child(2n+1) { background-color: lighten($baseColor, 30%) }
       background-color: lighten($baseColor, 90%);

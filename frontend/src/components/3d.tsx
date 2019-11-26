@@ -136,7 +136,6 @@ export function animate(): void {
 }
 
 function dispatchBuildingEvent(eventData?: BuildingEventData): void {
-    console.log('>> dispatchBuildingEvent', eventData);
     const event = new CustomEvent<BuildingEventData>('building-event', {
         detail: eventData
     });
@@ -160,14 +159,9 @@ function onMouse(
     // calculate objects intersecting the picking ray
     intersections = raycaster.intersectObjects(plywoodSheets, true);
 
-    const mouseMsg: String = `event.x:${event.x} event.y:${event.y} x:${mouse.x} y:${mouse.y}`;
+    // const mouseMsg: String = `event.x:${event.x} event.y:${event.y} x:${mouse.x} y:${mouse.y}`;
     if (intersections.length > 0) {
         const plywoodMesh: any = intersections[0].object;
-        console.log(
-            `${mouseMsg} And another one HITS THE TARGET!`,
-            intersections
-        );
-        console.log('plywood sheet id: ' + plywoodMesh.userData.id);
         handlers.overObject && handlers.overObject(plywoodMesh);
     } else {
         handlers.offObjects && handlers.offObjects();
@@ -190,7 +184,7 @@ function dispatchPlywoodClicked(plywoodMesh: Object3D): void {
     }
 }
 
-function dispatchPlywoodHoverOff() {
+function dispatchPlywoodHoverOff(): void {
     const eventData: BuildingEventData = {
         type: 'mouse-off-3d-object'
     };
@@ -198,7 +192,7 @@ function dispatchPlywoodHoverOff() {
     return;
 }
 
-function dispatchPlywoodHover(plywoodMesh?: Object3D): void {
+function dispatchPlywoodHover(plywoodMesh: Object3D): void {
     const plywoodId: String = plywoodMesh.userData.id;
     if (plywoodId) {
         const eventData: BuildingEventData = {
@@ -230,7 +224,6 @@ document.body.addEventListener(
     'building-event',
     (e: CustomEvent<BuildingEventData>) => {
         const type = e.detail.type;
-        console.log('building-event', e.detail);
         switch (type) {
             case 'selected-entities': {
                 deHilightPlywoodSheets(plywoodSheets);
