@@ -17,7 +17,8 @@ export type Command<T = any> = {
         | 'navigate-to-building-browser'
         | 'refresh-map'
         | 'mouse-enter-entity'
-        | 'mouse-leave-entity';
+        | 'mouse-leave-entity'
+        | 'selected-entities';
     id?: string;
     data?: T;
 };
@@ -33,7 +34,12 @@ export interface QueryEntity {
 }
 
 export type MutateMapEventData = {
-    type: 'ensure-tree' | 'move-to' | 'reset-markers' | 'refresh';
+    type:
+        | 'ensure-tree'
+        | 'move-to'
+        | 'reset-markers'
+        | 'refresh'
+        | 'selected-entities';
     data?: any;
     coords?: { lng: number; lat: number };
 };
@@ -66,7 +72,7 @@ export interface Sources<State> {
     commandGateway: Stream<Command>;
     map: Stream<MapEventData>;
     building: Stream<BuildingEventData>;
-    buildingInteraction: Stream<BuildingEventData<QueryEntity[]>>;
+    onHoverInteraction: Stream<BuildingEventData<QueryEntity[]>>;
 }
 
 export interface Sinks<State> {
@@ -79,7 +85,7 @@ export interface Sinks<State> {
     commandGateway?: Stream<any>;
     map?: Stream<Command<MutateMapEventData[]>>;
     building?: Stream<BuildingEventData<QueryEntity[]>>;
-    buildingInteraction?: Stream<BuildingEventData<QueryEntity[]>>;
+    onHoverInteraction?: Stream<BuildingEventData<QueryEntity[]>>;
 }
 
 export interface RouteProps {

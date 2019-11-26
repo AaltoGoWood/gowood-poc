@@ -92,7 +92,6 @@ async function handleRequest(req: DataRequest): Promise<DataResponse> {
         .then(response => response.json())
         .then((response: any) => [true, response] as MaybeResults)
         .catch((err: any) => [false, err] as MaybeResults);
-    console.log('res', res);
     if (ok) {
         return {
             req,
