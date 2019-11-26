@@ -1,7 +1,9 @@
 (ns query-service.model.ogre-db
-  (:require [clojurewerkz.ogre.core :refer [open-graph traversal traverse value-map
-                                            match out has in select into-seq!
-                                            values as by V __] :as ogre])
+  (:require 
+   [clojure.edn :as edn]
+   [clojurewerkz.ogre.core :refer [open-graph traversal traverse value-map
+                                   match out has in select into-seq!
+                                   values as by V __] :as ogre])
   (:import (org.apache.tinkerpop.gremlin.process.traversal Compare Operator Order P Pop SackFunctions$Barrier Scope Traversal)
            (org.apache.tinkerpop.gremlin.structure Graph T Column VertexProperty$Cardinality Vertex)
            (org.apache.tinkerpop.gremlin.structure.util GraphFactory)
@@ -17,10 +19,18 @@
     "node-type" :type
     (keyword k)))
 
+(defn- parse-coords [coordStr]
+  (let [[lng lat] (clojure.string/split coordStr #",[ ]?")]
+    (if (and lng lat) 
+      {:lng (edn/read-string lng) :lat (edn/read-string lat) }
+      nil
+      )
+    ))
+
 (declare normalize-object)
 (defn- normalize-value [k v]
   (cond
-    (= k "coords") (clojure.string/split (first v) #",[ ]?")
+    (= k "coords") (parse-coords (first v))
     (or (vector? v)
         (instance? java.util.ArrayList v)) (first v)
     (instance? org.apache.tinkerpop.gremlin.process.traversal.step.util.BulkSet v)
@@ -55,7 +65,7 @@
 
 (defn reset-graph []
   (let [g (get-graph)]
-    (-> g V (ogre/drop) (.next))))
+    (-> g V (ogre/drop) (.iterate))))
 
 (defn count-V []
   (let [g (get-graph)]
@@ -91,17 +101,29 @@
     ;; (reset-graph)
     (-> g
         (entity "building" "746103")
-        (entity "plywood" "p123")
-        (entity "plywood" "p124")
-        (entity "plywood" "p125")
-        (entity "tree-trunk" "p123-1"  {"Species of Tree" "Pine"
-                                        "Trunk width" 75
-                                        "Timestamp" "2019-10-14T09:12:13.012Z"
-                                        "Length" 20
-                                        "Coords" "25.474293614, 65.0543745" })
-        (entity "tree-trunk" "p123-2")
-        (entity "tree-trunk" "p124-1")
-        (entity "tree-trunk" "p125-1")
+        (entity "plywood" "p123" {"producer" "UPM Plywood"})
+        (entity "plywood" "p124" {"producer" "UPM Plywood"})
+        (entity "plywood" "p125" {"producer" "UPM Plywood"})
+        (entity "tree-trunk" "p123-1"  {"speciesOfTree" "Pine"
+                                        "trunkWidth" 75
+                                        "timestamp" "2019-10-14T09:12:13.012Z"
+                                        "length" 20
+                                        "coords" "25.474273614, 65.0563745" })
+        (entity "tree-trunk" "p123-2" {"speciesOfTree" "Pine"
+                                       "trunkWidth" 60
+                                       "timestamp" "2019-10-12T09:12:13.012Z"
+                                       "length" 30
+                                       "coords" "25.474293614, 65.0543745"})
+        (entity "tree-trunk" "p124-1" {"speciesOfTree" "Pine"
+                                        "trunkWidth" 60
+                                        "timestamp" "2019-10-11T09:10:13.012Z"
+                                        "length" 25
+                                        "coords" "25.474243614, 65.0503745"})
+        (entity "tree-trunk" "p125-1" {"speciesOfTree" "Pine"
+                                       "trunkWidth" 60
+                                       "timestamp" "2019-10-11T09:10:13.012Z"
+                                       "length" 25
+                                       "coords" "25.484243614, 65.0503645"})
         (composed-of "building/746103" "plywood/p123")
         (composed-of "building/746103" "plywood/p124")
         (composed-of "building/746103" "plywood/p125")
@@ -123,7 +145,7 @@
      (traverse g V
                (ogre/has node-type "node-id" node-id)
                (ogre/as :attributes)
-               (out) (ogre/value-map) (ogre/aggregate :row)
+               (ogre/optional (__ (out) (ogre/value-map) (ogre/aggregate :row)))
                (ogre/project "attributes" "rows")
                (ogre/by (__ (select :attributes) (ogre/value-map)))
                (ogre/by (__ (select :row)))
