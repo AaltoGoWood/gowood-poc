@@ -15,7 +15,9 @@ export type Command<T = any> = {
         | 'reset-building-assets'
         | 'show-asset-origin'
         | 'navigate-to-building-browser'
-        | 'refresh-map';
+        | 'refresh-map'
+        | 'mouse-enter-entity'
+        | 'mouse-leave-entity';
     id?: string;
     data?: T;
 };
@@ -42,9 +44,14 @@ export type MapEventData = {
     coords?: { lng: number; lat: number };
 };
 
-export type BuildingEventData = {
-    type: 'building-clicked' | 'mouse-enter-plywood' | 'mouse-leave-plywood';
-    data?: any;
+export type BuildingEventData<T = any> = {
+    type:
+        | 'building-clicked'
+        | 'selected-entities'
+        | 'mouse-enter-plywood'
+        | 'mouse-leave-plywood'
+        | 'mouse-over-3d-object';
+    data?: T;
 };
 
 export interface Sources<State> {
@@ -66,6 +73,7 @@ export interface Sinks<State> {
     dataQuery?: Stream<{ type: string; id: string }>;
     commandGateway?: Stream<any>;
     map?: Stream<Command<MutateMapEventData[]>>;
+    building?: Stream<BuildingEventData<QueryEntity[]>>;
 }
 
 export interface RouteProps {

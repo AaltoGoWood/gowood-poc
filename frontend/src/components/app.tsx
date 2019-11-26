@@ -15,7 +15,8 @@ import {
     MutateMapEventData,
     RoutedComponentAcc,
     RouteProps,
-    BuildingEventData
+    BuildingEventData,
+    QueryEntity
 } from '../interfaces';
 
 import { LandingPanel, State as LandingPageState } from './landing-panel';
@@ -28,6 +29,7 @@ import view from 'ramda/es/view';
 import { DataResponse, DataRequest } from '../drivers/dataQueryDriver';
 import { State as LayoutState } from '../drivers/layoutDriver';
 import { Layout } from 'mapbox-gl';
+import { type } from 'os';
 export interface State {
     mapSearch?: LandingPageState;
     building?: DetailPanelState;
@@ -165,12 +167,37 @@ export function App(sources: Sources<State>): Sinks<State> {
             MutateMapEventData[]
         >);
 
+    const buildingInteraction$: Stream<
+        BuildingEventData<QueryEntity[]>
+    > = sources.commandGateway
+        .map(cmd => {
+            console.log('JAA', cmd);
+            switch (cmd.type) {
+                case 'mouse-enter-entity':
+                    return {
+                        type: 'selected-entities',
+                        data: [cmd.data]
+                    } as BuildingEventData<QueryEntity[]>;
+                case 'mouse-leave-entity':
+                    return {
+                        type: 'selected-entities',
+                        data: []
+                    } as BuildingEventData<QueryEntity[]>;
+                default:
+                    return undefined;
+            }
+        })
+        .filter(
+            (bed?: BuildingEventData<QueryEntity[]>) => bed !== undefined
+        ) as Stream<BuildingEventData<QueryEntity[]>>;
+
     return {
         ...sinks,
         dataQuery: xs.merge(dataQuery, mapDataQuery$, buildingDataQuery$),
         layout: layout$,
         commandGateway: commandGateway$,
         map: xs.merge($showAssetOrigin, refreshMap$),
+        building: buildingInteraction$,
         router: xs.merge(
             redirect$,
             firstTimePageLoad$,
