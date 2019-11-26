@@ -9,6 +9,12 @@
       "property-declaration",
       "member-variable-declaration"
     ],
+    "max-line-length": [
+      true,
+      {
+        "limit": 140
+      }
+    ],
     "curly": true,
     "no-duplicate-variable": true,
     "no-empty": true,

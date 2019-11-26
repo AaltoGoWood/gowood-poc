@@ -50,7 +50,8 @@ export type BuildingEventData<T = any> = {
         | 'selected-entities'
         | 'mouse-enter-plywood'
         | 'mouse-leave-plywood'
-        | 'mouse-over-3d-object';
+        | 'mouse-over-3d-object'
+        | 'mouse-off-3d-object';
     data?: T;
 };
 
@@ -62,6 +63,7 @@ export interface Sources<State> {
     commandGateway: Stream<Command>;
     map: Stream<MapEventData>;
     building: Stream<BuildingEventData>;
+    buildingInteraction: Stream<BuildingEventData<QueryEntity[]>>;
 }
 
 export interface Sinks<State> {
@@ -74,6 +76,7 @@ export interface Sinks<State> {
     commandGateway?: Stream<any>;
     map?: Stream<Command<MutateMapEventData[]>>;
     building?: Stream<BuildingEventData<QueryEntity[]>>;
+    buildingInteraction?: Stream<BuildingEventData<QueryEntity[]>>;
 }
 
 export interface RouteProps {

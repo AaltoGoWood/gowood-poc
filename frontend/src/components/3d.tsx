@@ -16,7 +16,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { BuildingEventData } from './../interfaces';
 import { curry, find, propEq } from 'ramda';
 
-type PlywoodHandler = (plywoodSheet: Object3D) => void;
+type PlywoodHandler = (plywoodSheet?: Object3D) => void;
 
 let scene: Scene, camera: Camera, renderer: Renderer;
 let controls: OrbitControls;
@@ -143,7 +143,10 @@ function dispatchBuildingEvent(eventData?: BuildingEventData): void {
     document.body.dispatchEvent(event);
 }
 
-function onMouse(onPlywoodSheet: PlywoodHandler, event: MouseEvent): void {
+function onMouse(
+    handlers: { overObject?: PlywoodHandler; offObjects?: PlywoodHandler },
+    event: MouseEvent
+): void {
     // calculate mouse position in normalized device coordinates
     // (-1 to +1) for both components.
     // The X coord needs to be adjusted to take sidepanel into account
@@ -165,9 +168,9 @@ function onMouse(onPlywoodSheet: PlywoodHandler, event: MouseEvent): void {
             intersections
         );
         console.log('plywood sheet id: ' + plywoodMesh.userData.id);
-        onPlywoodSheet(plywoodMesh);
+        handlers.overObject && handlers.overObject(plywoodMesh);
     } else {
-        // console.log(mouseMsg);
+        handlers.offObjects && handlers.offObjects();
     }
 }
 
@@ -187,7 +190,15 @@ function dispatchPlywoodClicked(plywoodMesh: Object3D): void {
     }
 }
 
-function dispatchPlywoodHover(plywoodMesh: Object3D): void {
+function dispatchPlywoodHoverOff() {
+    const eventData: BuildingEventData = {
+        type: 'mouse-off-3d-object'
+    };
+    dispatchBuildingEvent(eventData);
+    return;
+}
+
+function dispatchPlywoodHover(plywoodMesh?: Object3D): void {
     const plywoodId: String = plywoodMesh.userData.id;
     if (plywoodId) {
         const eventData: BuildingEventData = {
@@ -234,22 +245,6 @@ document.body.addEventListener(
                         hilightPlywoodSheet(plywoodMesh);
                     });
             }
-            // case 'mouse-enter-plywood': {
-            //     const plywoodId = e.detail.data.id;
-            //     const plywoodMesh: Object3D | undefined = getPlywoodSheetWithId(
-            //         plywoodSheets,
-            //         plywoodId
-            //     );
-            //     deHilightPlywoodSheets(plywoodSheets);
-            //     if (plywoodMesh) {
-            //         hilightPlywoodSheet(plywoodMesh);
-            //     }
-            //     break;
-            // }
-            // case 'mouse-leave-plywood': {
-            //     deHilightPlywoodSheets(plywoodSheets);
-            //     break;
-            // }
             default: {
                 break;
             }
@@ -259,12 +254,15 @@ document.body.addEventListener(
 
 container.addEventListener(
     'click',
-    curry(onMouse)(dispatchPlywoodClicked),
+    curry(onMouse)({ overObject: dispatchPlywoodClicked }),
     false
 );
 
 container.addEventListener(
     'mousemove',
-    curry(onMouse)(dispatchPlywoodHover),
+    curry(onMouse)({
+        overObject: dispatchPlywoodHover,
+        offObjects: dispatchPlywoodHoverOff
+    }),
     false
 );
