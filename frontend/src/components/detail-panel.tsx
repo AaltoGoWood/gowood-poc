@@ -111,10 +111,7 @@ function model(
 
     const selectingObjectStream$ = buildingInteraction$
         .filter(cmd => cmd.type === 'selected-entities')
-        .map(cmd => {
-            console.log('>> selected-entities', cmd);
-            return addToState({ selectingEntity: cmd.data || [] });
-        });
+        .map(cmd => addToState({ selectingEntity: cmd.data || [] }));
 
     return xs.merge(
         init$,
@@ -285,10 +282,10 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                 <tbody>
                     {props.rows.map((row: any) => {
                         const rowClass = props.selectingEntity.some(
-                            e => e.id === row.Id && e.type === row.type
+                            e => e.id === row.id && e.type === row.type
                         )
                             ? 'focus'
-                            : '';
+                            : 'no-focus';
                         return (
                             <tr
                                 className={rowClass}

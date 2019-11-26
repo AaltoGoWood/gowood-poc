@@ -189,7 +189,9 @@ export function App(sources: Sources<State>): Sinks<State> {
     };
 }
 
-function getBuildingInteractionStream(sources: Sources<State>) {
+function getBuildingInteractionStream(
+    sources: Sources<State>
+): Stream<BuildingEventData<QueryEntity[]>> {
     const buildingTableInteraction$: Stream<
         BuildingEventData<QueryEntity[]>
     > = sources.commandGateway
@@ -236,7 +238,34 @@ function getBuildingInteractionStream(sources: Sources<State>) {
             (bed?: BuildingEventData<QueryEntity[]>) => bed !== undefined
         ) as Stream<BuildingEventData<QueryEntity[]>>;
 
-    return xs.merge(buildingTableInteraction$, buildingModelInteraction$);
+    const mapInteraction$: Stream<
+        BuildingEventData<QueryEntity[]>
+    > = sources.map
+        .map(cmd => {
+            switch (cmd.type) {
+                case 'map-object-mouse-enter':
+                    return {
+                        type: 'selected-entities',
+                        data: [cmd.data]
+                    } as BuildingEventData<QueryEntity[]>;
+                case 'map-object-mouse-leave':
+                    return {
+                        type: 'selected-entities',
+                        data: []
+                    } as BuildingEventData<QueryEntity[]>;
+                default:
+                    return undefined;
+            }
+        })
+        .filter(
+            (bed?: BuildingEventData<QueryEntity[]>) => bed !== undefined
+        ) as Stream<BuildingEventData<QueryEntity[]>>;
+
+    return xs.merge(
+        buildingTableInteraction$,
+        buildingModelInteraction$,
+        mapInteraction$
+    );
 }
 
 function mapCommandsToMapEvents(

@@ -213,10 +213,18 @@ type MapEventData = {
 type MapDataEventHandler = (param: MutateMapEventData) => void;
 let markers: mapboxgl.Marker[] = [];
 
-const addMarkerTo = (coords: mapboxgl.LngLatLike, eventData?: MapEventData) => {
+const addMarkerTo = (coords: mapboxgl.LngLatLike, eventData: MapEventData) => {
     const el = document.createElement('div');
     el.className = 'marker';
     el.addEventListener('click', dispatchMapEventFn(eventData));
+    el.addEventListener(
+        'mouseenter',
+        dispatchMapEventFn({ ...eventData, type: 'map-object-mouse-enter' })
+    );
+    el.addEventListener(
+        'mouseleave',
+        dispatchMapEventFn({ ...eventData, type: 'map-object-mouse-leave' })
+    );
     return new mapboxgl.Marker(el).setLngLat(coords).addTo(map);
 };
 
@@ -245,6 +253,7 @@ const handlerStrategy: Dictionary<MapDataEventHandler> = {
 };
 
 function dispatchMapEvent(eventData?: MapEventData): void {
+    console.log('map event', eventData);
     if (!eventData) {
         return;
     }
