@@ -26,8 +26,12 @@ export const AttributeTable = (
                         .filter(k => layout.shouldShowField(k))
                         .map(k => (
                             <tr className={layout.attributeTagFn(k)}>
-                                <td className="field">{k}</td>
-                                <td className="value">{props[k]}</td>
+                                <td className="field">
+                                    {layout.formatLabel(k)}
+                                </td>
+                                <td className="value">
+                                    {layout.formatValue(k, props[k])}
+                                </td>
                             </tr>
                         ))}
                 </tbody>
