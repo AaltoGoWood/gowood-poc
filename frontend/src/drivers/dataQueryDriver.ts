@@ -3,7 +3,7 @@ import { Command } from './../interfaces';
 import { Stream } from 'xstream';
 import {
     VisualizationViewType,
-    AttributesLayout,
+    PartialAttributesLayout,
     RowsLayout,
     CommandsLayout,
     EntityLayout,
@@ -26,12 +26,13 @@ export type DataResponse = {
 };
 
 const DefaultAttributesLayout = {
-    attributeTagFn: (field: string) => ''
+    attributeTagFn: (field: string) => '',
+    shouldShowField: (field: string) => !['id', 'type'].some(f => field === f)
 };
 
 function ToEntityLayout(
     defaultView: VisualizationViewType,
-    attributes?: AttributesLayout,
+    attributes?: PartialAttributesLayout,
     rows?: RowsLayout,
     commands?: CommandsLayout
 ): EntityLayout {

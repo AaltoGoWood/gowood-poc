@@ -22,12 +22,14 @@ export const AttributeTable = (
                     </tr>
                 </thead>
                 <tbody>
-                    {keys.map(k => (
-                        <tr className={layout.attributeTagFn(k)}>
-                            <td className="field">{k}</td>
-                            <td className="value">{props[k]}</td>
-                        </tr>
-                    ))}
+                    {keys
+                        .filter(k => layout.shouldShowField(k))
+                        .map(k => (
+                            <tr className={layout.attributeTagFn(k)}>
+                                <td className="field">{k}</td>
+                                <td className="value">{props[k]}</td>
+                            </tr>
+                        ))}
                 </tbody>
             </table>
         </div>
