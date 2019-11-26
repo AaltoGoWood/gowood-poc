@@ -1,6 +1,5 @@
 (ns query-service.routes.services
   (:require
-
    [reitit.swagger :as swagger]
    [reitit.swagger-ui :as swagger-ui]
    [reitit.ring.coercion :as coercion]
@@ -17,7 +16,7 @@
    [ring.util.response :refer [redirect]]
    [clojure.java.io :as io]))
 
-(s/def ::operations #{"origins" "info-with-first-level-components"})
+(s/def ::operations #{"origins" "info-with-first-level-components" "info-with-first-level-components-fake" })
 
 (s/def ::type string?)
 (s/def ::id string?)
@@ -75,7 +74,8 @@
             :handler (fn [{:keys [parameters]}]
                        (let [op (get-in parameters [:path :operation])
                              cmd-body (get-in parameters [:body])]
-                         
-                         (ok (ogre-db/apply-command op cmd-body))))}}     
-     ]]])
+                         (case op
+                           "info-with-first-level-components-fake" 
+                           (ok (fake-db/apply-command op cmd-body))
+                           (ok (ogre-db/apply-command op cmd-body)))))}}]]])
 
