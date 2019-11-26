@@ -3,15 +3,11 @@ import { Stream } from 'xstream';
 
 const eventRoot = document.body;
 
-eventRoot.addEventListener('mutate-map-event', e =>
-    console.info('CUSTOM EVENTS: mutate-map-event', e)
-);
-
 const outStream = Stream.never();
 
 eventRoot.addEventListener('map-event', (e: CustomEvent<MapEventData>) => {
     outStream.shamefullySendNext(e.detail);
-    console.info('CUSTOM EVENTS: map-event', e);
+    // console.info('CUSTOM EVENTS: map-event', e);
 });
 
 export function mapDriver(

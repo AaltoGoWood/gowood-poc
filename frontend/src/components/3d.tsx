@@ -169,8 +169,6 @@ function onMouse(
 }
 
 function dispatchPlywoodClicked(plywoodMesh: Object3D): void {
-    //plywoodMesh.material.opacity = 1.0;
-    console.log('plywood mesh', plywoodMesh);
     const plywoodId: String = plywoodMesh.userData.id;
     if (plywoodId) {
         const eventData: BuildingEventData = {

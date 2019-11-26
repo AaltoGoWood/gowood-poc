@@ -44,7 +44,6 @@ export interface BreadcrumbProps {
     dispatchFn: (e: Command) => void;
 }
 export const Breadcrumb = (props: BreadcrumbProps) => {
-    console.log('breadcrumb', props);
     const navNodeView = (name: string, onclick: (e: any) => void) => (
         <span className="node-container">
             <button className="gowood-button small" onclick={onclick}>
