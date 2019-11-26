@@ -1,7 +1,6 @@
 import { DataResponse } from './dataQueryDriver';
 import { Command } from './../interfaces';
 import { Stream } from 'xstream';
-import * as rp from 'request-promise';
 import {
     VisualizationViewType,
     AttributesLayout,
@@ -63,11 +62,17 @@ const layoutDirectives: LayoutDirectiveCollection = {
 
 async function handleRequest(req: DataRequest): Promise<DataResponse> {
     type MaybeResults = [boolean, any];
-    const [ok, res]: MaybeResults = await rp({
-        method: 'POST',
-        uri: 'http://localhost:8080/api/query/info-with-first-level-components',
-        json: { from: req }
-    })
+    const [ok, res]: MaybeResults = await fetch(
+        'http://localhost:8080/api/query/info-with-first-level-components',
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ from: req })
+        }
+    )
+        .then(response => response.json())
         .then((response: any) => [true, response] as MaybeResults)
         .catch((err: any) => [false, err] as MaybeResults);
     console.log('res', res);
