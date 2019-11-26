@@ -23,9 +23,7 @@
   (let [[lng lat] (clojure.string/split coordStr #",[ ]?")]
     (if (and lng lat)
       {:lng (edn/read-string lng) :lat (edn/read-string lat) }
-      nil
-      )
-    ))
+      nil)))
 
 (declare normalize-object)
 (defn- normalize-value [k v]
@@ -57,14 +55,19 @@
   (let [g (get-graph)]
     (-> g V (ogre/drop) (.iterate))))
 
-(defn count-V []
+(defn count-V 
+  "count-V return number of nodes (verticles) in graph.
+   Function is created for mainly dev purpose"
+  []
   (let [g (get-graph)]
     (or
      (first (traverse g V (.count) (ogre/into-vec!)))
      0)))
 
-
-(defn count-E []
+(defn count-E 
+  "count-E return number of edges in graph.
+   Function is created for mainly dev purpose"
+  []
   (let [g (get-graph)]
     (or
      (first (traverse g ogre/E (.count) (ogre/into-vec!)))
@@ -73,7 +76,7 @@
 (defn- entity [acc type id & [props]]
   (-> acc
       (.addV type)
-      (ogre/property  "node-id" id)
+      (ogre/property "node-id" id)
       (ogre/property "node-type" type)
       (#(reduce (fn [acc, [k, v]] (ogre/property acc k v))
                 %
@@ -88,7 +91,6 @@
 
 (defn init-poc-graph []
   (let [g (get-graph)]
-    ;; (reset-graph)
     (-> g
         (entity "building" "746103")
         (entity "plywood" "p123" {"producer" "UPM Plywood"})
@@ -142,8 +144,6 @@
                (.tryNext))
      normalize-object)))
 
-;  (get-node-with-components "building" "746103")
-
 (defn get-edges []
   (let [g (get-graph)]
     (traverse g ogre/E
@@ -152,34 +152,9 @@
 (defn apply-command [op body]
   (let [{{id :id type :type} :from} body
         data (get-node-with-components type id)
-        found? (some? data)
-        ]
-    (println (str "orge -> id: " id "; type: " type "; found " found?))
+        found? (some? data)]
+    (println "orge -> id: " id "; type: " type "; found " found?)
     {:req {:op op :body body}
      :result {:found found?
               :data data}
      :external-nodes []}))
-
-(apply-command nil {:from {:id "749103" :type "building"}})
-
-
-
-;; IN MEMORY DB GREMLIN TINKER GRAPH. EASIEST TO TEST FIRST
-; (def tinker-graph (open-graph {(Graph/GRAPH)
-;                                (.getName org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph)}))
-
-; (defn generate-toy-graph-into!
-;   "Generate the graph in createModern() into an existing graph"
-;   [graph]
-;   (org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerFactory/generateModern graph))
-
-; (defn test-gremlin-tinkergraph []
-;   (generate-toy-graph-into! tinker-graph)
-;   (let [g (traversal tinker-graph)]
-;     (traverse g V (match
-;                    (__ (as :a) (out :created) (as :b))
-;                     (__ (as :b) (has :name "lop"))
-;                     (__ (as :b) (in :created) (as :c))
-;                     (__ (as :c) (has :age 29)))
-;               (select :a :c) (by :name)
-;               (into-seq!))))
