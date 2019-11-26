@@ -39,7 +39,10 @@ export type MutateMapEventData = {
 };
 
 export type MapEventData = {
-    type: 'map-object-clicked';
+    type:
+        | 'map-object-clicked'
+        | 'map-object-mouse-enter'
+        | 'map-object-mouse-leave';
     data?: any;
     coords?: { lng: number; lat: number };
 };
