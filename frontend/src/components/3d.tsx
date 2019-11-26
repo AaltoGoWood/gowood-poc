@@ -167,7 +167,7 @@ function onMouse(onPlywoodSheet: PlywoodHandler, event: MouseEvent): void {
         console.log('plywood sheet id: ' + plywoodMesh.userData.id);
         onPlywoodSheet(plywoodMesh);
     } else {
-        console.log(mouseMsg);
+        // console.log(mouseMsg);
     }
 }
 
@@ -178,6 +178,20 @@ function dispatchPlywoodClicked(plywoodMesh: Object3D): void {
     if (plywoodId) {
         const eventData: BuildingEventData = {
             type: 'building-clicked',
+            data: {
+                type: 'plywood',
+                id: plywoodId
+            }
+        };
+        dispatchBuildingEvent(eventData);
+    }
+}
+
+function dispatchPlywoodHover(plywoodMesh: Object3D): void {
+    const plywoodId: String = plywoodMesh.userData.id;
+    if (plywoodId) {
+        const eventData: BuildingEventData = {
+            type: 'mouse-over-3d-object',
             data: {
                 type: 'plywood',
                 id: plywoodId
@@ -205,23 +219,37 @@ document.body.addEventListener(
     'building-event',
     (e: CustomEvent<BuildingEventData>) => {
         const type = e.detail.type;
+        console.log('building-event', e.detail);
         switch (type) {
-            case 'mouse-enter-plywood': {
-                const plywoodId = e.detail.data.id;
-                const plywoodMesh: Object3D | undefined = getPlywoodSheetWithId(
-                    plywoodSheets,
-                    plywoodId
-                );
-                if (plywoodMesh) {
-                    deHilightPlywoodSheets(plywoodSheets);
-                    hilightPlywoodSheet(plywoodMesh);
-                }
-                break;
-            }
-            case 'mouse-leave-plywood': {
+            case 'selected-entities': {
                 deHilightPlywoodSheets(plywoodSheets);
-                break;
+                (e.detail.data || [])
+                    .map((entity: any) =>
+                        getPlywoodSheetWithId(plywoodSheets, entity.id)
+                    )
+                    .filter(
+                        (plywoodMesh: Object3D) => plywoodMesh !== undefined
+                    )
+                    .forEach((plywoodMesh: Object3D) => {
+                        hilightPlywoodSheet(plywoodMesh);
+                    });
             }
+            // case 'mouse-enter-plywood': {
+            //     const plywoodId = e.detail.data.id;
+            //     const plywoodMesh: Object3D | undefined = getPlywoodSheetWithId(
+            //         plywoodSheets,
+            //         plywoodId
+            //     );
+            //     deHilightPlywoodSheets(plywoodSheets);
+            //     if (plywoodMesh) {
+            //         hilightPlywoodSheet(plywoodMesh);
+            //     }
+            //     break;
+            // }
+            // case 'mouse-leave-plywood': {
+            //     deHilightPlywoodSheets(plywoodSheets);
+            //     break;
+            // }
             default: {
                 break;
             }
@@ -232,5 +260,11 @@ document.body.addEventListener(
 container.addEventListener(
     'click',
     curry(onMouse)(dispatchPlywoodClicked),
+    false
+);
+
+container.addEventListener(
+    'mousemove',
+    curry(onMouse)(dispatchPlywoodHover),
     false
 );
