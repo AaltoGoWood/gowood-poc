@@ -38,22 +38,12 @@
     (instance? java.util.LinkedHashMap v)
     (normalize-object v)
     :else v))
-; (normalize-value "coords" ["1, 2"])
 
 (defn normalize-object [obj]
   (cond
     (and (instance? java.util.Optional obj) (not (.isPresent obj))) nil
     (and (instance? java.util.Optional obj) (.isPresent obj)) (normalize-object (.get obj))
     :else (into {} (map (fn [[k vl]] [(attr->keyword k) (normalize-value k vl)]) obj))))
-
-; (normalize-value "coord" ["1, 2"])
-; (normalize-value "foo" ["bar"])
-; (normalize-value "foo"
-;                  #{{"node-id" ["p125"], "node-type" ["plywood"]}
-;                    {"node-id" ["p124"], "node-type" ["plywood"]}
-;                    {"node-id" ["p123"], "node-type" ["plywood"]}})
-
-; (normalize-object {"node-id" ["746103"], "node-type" ["building"] "foobar" ["fkk"]})
 
 (defn get-graph []
   (let [conf-file-url ^java.net.URL (clojure.java.io/resource "conf/remote-objects.yaml")
