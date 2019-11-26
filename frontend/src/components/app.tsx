@@ -41,7 +41,8 @@ export function App(sources: Sources<State>): Sinks<State> {
     const buildingInteraction$: Stream<
         BuildingEventData<QueryEntity[]>
     > = getBuildingInteractionStream(sources);
-    sources.buildingInteraction = buildingInteraction$;
+    sources.buildingInteraction =
+        sources.buildingInteraction || buildingInteraction$;
 
     const map$ = sources.map;
     const mapDataQuery$ = map$
@@ -216,7 +217,6 @@ function getBuildingInteractionStream(sources: Sources<State>) {
         BuildingEventData<QueryEntity[]>
     > = sources.building
         .map(cmd => {
-            console.log('JAA', cmd);
             switch (cmd.type) {
                 case 'mouse-over-3d-object':
                     return {
