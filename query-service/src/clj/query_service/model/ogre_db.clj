@@ -1,5 +1,5 @@
 (ns query-service.model.ogre-db
-  (:require 
+  (:require
    [clojure.edn :as edn]
    [clojurewerkz.ogre.core :refer [open-graph traversal traverse value-map
                                    match out has in select into-seq!
@@ -21,7 +21,7 @@
 
 (defn- parse-coords [coordStr]
   (let [[lng lat] (clojure.string/split coordStr #",[ ]?")]
-    (if (and lng lat) 
+    (if (and lng lat)
       {:lng (edn/read-string lng) :lat (edn/read-string lat) }
       nil
       )
@@ -41,7 +41,7 @@
 ; (normalize-value "coords" ["1, 2"])
 
 (defn normalize-object [obj]
-  (cond 
+  (cond
     (and (instance? java.util.Optional obj) (not (.isPresent obj))) nil
     (and (instance? java.util.Optional obj) (.isPresent obj)) (normalize-object (.get obj))
     :else (into {} (map (fn [[k vl]] [(attr->keyword k) (normalize-value k vl)]) obj))))
@@ -56,8 +56,8 @@
 ; (normalize-object {"node-id" ["746103"], "node-type" ["building"] "foobar" ["fkk"]})
 
 (defn get-graph []
-  (let [conf-file-url (clojure.java.io/resource "conf/remote-objects.yaml")
-        conf-file (clojure.string/replace (.toString conf-file-url) "file:/" "")
+  (let [conf-file-url ^java.net.URL (clojure.java.io/resource "conf/remote-objects.yaml")
+        conf-file (.getPath conf-file-url)
         driverConnection (DriverRemoteConnection/using conf-file "g")
         graph (EmptyGraph/instance)
         g (.withRemote (traversal graph) driverConnection)]
@@ -69,8 +69,8 @@
 
 (defn count-V []
   (let [g (get-graph)]
-    (or 
-     (first (traverse g V (.count) (ogre/into-vec!))) 
+    (or
+     (first (traverse g V (.count) (ogre/into-vec!)))
      0)))
 
 
@@ -82,7 +82,7 @@
 
 (defn- entity [acc type id & [props]]
   (-> acc
-      (.addV type) 
+      (.addV type)
       (ogre/property  "node-id" id)
       (ogre/property "node-type" type)
       (#(reduce (fn [acc, [k, v]] (ogre/property acc k v))
@@ -135,13 +135,13 @@
 
 (defn get-nodes []
   (let [g (get-graph)]
-    (traverse g V 
+    (traverse g V
       (ogre/value-map)
       (ogre/into-vec!))))
 
 (defn get-node-with-components [node-type node-id]
   (let [g (get-graph)]
-    (-> 
+    (->
      (traverse g V
                (ogre/has node-type "node-id" node-id)
                (ogre/as :attributes)
@@ -171,6 +171,9 @@
      :external-nodes []}))
 
 (apply-command nil {:from {:id "749103" :type "building"}})
+
+
+
 ;; IN MEMORY DB GREMLIN TINKER GRAPH. EASIEST TO TEST FIRST
 ; (def tinker-graph (open-graph {(Graph/GRAPH)
 ;                                (.getName org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph)}))
