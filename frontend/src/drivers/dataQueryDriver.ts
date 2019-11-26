@@ -1,5 +1,3 @@
-import { DataResponse } from './dataQueryDriver';
-import { Command } from './../interfaces';
 import { Stream } from 'xstream';
 import {
     VisualizationViewType,
@@ -9,8 +7,6 @@ import {
     EntityLayout,
     LayoutDirectiveCollection
 } from '../interfaces';
-import { ifError } from 'assert';
-import reduceWhile from 'ramda/es/reduceWhile';
 
 export type DataRequest = {
     type: string;
