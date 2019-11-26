@@ -67,15 +67,32 @@
    ["/query"
     {:swagger {:tags ["query-api"]}}
     ["/:operation"
-    {:post {:summary "Run named query starting from a node"
-            :parameters {:path {:operation ::operations }
-                         :body ::operations-body}
+     {:post {:summary "Run named query starting from a node"
+             :parameters {:path {:operation ::operations }
+                          :body ::operations-body}
             ;; :responses {200 {:body }}
-            :handler (fn [{:keys [parameters]}]
-                       (let [op (get-in parameters [:path :operation])
-                             cmd-body (get-in parameters [:body])]
-                         (case op
-                           "info-with-first-level-components-fake" 
-                           (ok (fake-db/apply-command op cmd-body))
-                           (ok (ogre-db/apply-command op cmd-body)))))}}]]])
+             :handler (fn [{:keys [parameters]}]
+                        (let [op (get-in parameters [:path :operation])
+                              cmd-body (get-in parameters [:body])]
+                          (case op
+                            "info-with-first-level-components-fake" 
+                            (ok (fake-db/apply-command op cmd-body))
+                            (ok (ogre-db/apply-command op cmd-body)))))}}]]
+   
+   ["/db"
+    {:swagger {:tags ["POC admin"]}}
+    ["/janus-graph"
+     {:delete {:summary "Delete all data from data base"
+               :handler (fn [& _]
+                          (println "Removing db")
+                          (ogre-db/reset-graph)
+                          (println "db removed")
+                          (ok "ok"))}
+      :post {:summary "Create new database"
+             :handler (fn [& _]
+                        (println "Seeding db")
+                        (ogre-db/init-poc-graph)
+                        (println "db seeded")
+                        (ok "ok")
+                        )}}]]])
 
