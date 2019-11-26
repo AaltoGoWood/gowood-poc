@@ -13,5 +13,4 @@ run(main as any, getDrivers());
 window.addEventListener('load', () => {
     console.log('loading map and 3D model');
     initMap();
-    setTimeout(() => init3d(), 200);
 });

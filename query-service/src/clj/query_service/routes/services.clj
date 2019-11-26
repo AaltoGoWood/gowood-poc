@@ -93,6 +93,5 @@
                         (println "Seeding db")
                         (ogre-db/init-poc-graph)
                         (println "db seeded")
-                        (ok "ok")
-                        )}}]]])
+                        (ok "ok"))}}]]])
 
