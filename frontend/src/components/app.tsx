@@ -38,11 +38,11 @@ export function App(sources: Sources<State>): Sinks<State> {
         sources.commandGateway || xs.never();
     sources.commandGateway = commandGateway$;
 
-    const buildingInteraction$: Stream<
+    const onHoverInteraction$: Stream<
         BuildingEventData<QueryEntity[]>
-    > = getBuildingInteractionStream(sources);
-    sources.buildingInteraction =
-        sources.buildingInteraction || buildingInteraction$;
+    > = onHoverInteractionStream(sources);
+    sources.onHoverInteraction =
+        sources.onHoverInteraction || onHoverInteraction$;
 
     const map$ = sources.map;
     const mapDataQuery$ = map$
@@ -164,7 +164,10 @@ export function App(sources: Sources<State>): Sinks<State> {
 
     const sinks = extractSinks(componentSinks$, driverNames);
     const { dataQuery } = sinks;
-    const $showAssetOrigin = mapCommandsToMapEvents(commandGateway$);
+    const $showAssetOrigin = mapCommandsToMapEvents(
+        commandGateway$,
+        sources.onHoverInteraction
+    );
 
     const refreshMap$ = layout$
         .filter(l => l.map)
@@ -178,8 +181,8 @@ export function App(sources: Sources<State>): Sinks<State> {
         layout: layout$,
         commandGateway: commandGateway$,
         map: xs.merge($showAssetOrigin, refreshMap$),
-        buildingInteraction: buildingInteraction$,
-        building: buildingInteraction$,
+        onHoverInteraction: onHoverInteraction$,
+        building: onHoverInteraction$,
         router: xs.merge(
             redirect$,
             firstTimePageLoad$,
@@ -189,7 +192,7 @@ export function App(sources: Sources<State>): Sinks<State> {
     };
 }
 
-function getBuildingInteractionStream(
+function onHoverInteractionStream(
     sources: Sources<State>
 ): Stream<BuildingEventData<QueryEntity[]>> {
     const buildingTableInteraction$: Stream<
@@ -269,9 +272,26 @@ function getBuildingInteractionStream(
 }
 
 function mapCommandsToMapEvents(
-    commandGateway$: Stream<Command>
+    commandGateway$: Stream<Command>,
+    onHoverInteractionStream$: Stream<BuildingEventData<QueryEntity[]>>
 ): Stream<Command<MutateMapEventData[]>> {
     return xs.merge(
+        onHoverInteractionStream$
+            .filter(cmd => cmd.type === 'selected-entities')
+            .map(
+                cmd =>
+                    ({
+                        type: 'selected-entities',
+                        data: [
+                            {
+                                type: 'selected-entities',
+                                data: cmd.data,
+                                coords: undefined
+                            }
+                        ] as MutateMapEventData[]
+                    } as Command<MutateMapEventData[]>)
+            ),
+
         commandGateway$
             .filter(cmd => cmd.type === 'show-asset-origin')
             .map((cmd: Command) => {

@@ -55,7 +55,7 @@ export function Building(
             rootDataQuery$,
             dataQuery,
             commandGateway$,
-            sources.buildingInteraction
+            sources.onHoverInteraction
         ),
         dataQuery: query(rootDataQuery$, commandGateway$),
         commandGateway: commandGateway$
