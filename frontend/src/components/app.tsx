@@ -28,8 +28,6 @@ import { Dictionary } from 'ramda';
 import view from 'ramda/es/view';
 import { DataResponse, DataRequest } from '../drivers/dataQueryDriver';
 import { State as LayoutState } from '../drivers/layoutDriver';
-import { Layout } from 'mapbox-gl';
-import { type } from 'os';
 export interface State {
     mapSearch?: LandingPageState;
     building?: DetailPanelState;
@@ -39,6 +37,11 @@ export function App(sources: Sources<State>): Sinks<State> {
     const commandGateway$: Stream<Command> =
         sources.commandGateway || xs.never();
     sources.commandGateway = commandGateway$;
+
+    const buildingInteraction$: Stream<
+        BuildingEventData<QueryEntity[]>
+    > = getBuildingInteractionStream(sources);
+    sources.buildingInteraction = buildingInteraction$;
 
     const map$ = sources.map;
     const mapDataQuery$ = map$
@@ -54,6 +57,7 @@ export function App(sources: Sources<State>): Sinks<State> {
     const dataQueryWithoutPlywood$ = sources.dataQuery.filter(
         query => query.req.type !== 'plywood'
     );
+
     const buildingDataQuery$ = sources.building
         .filter(e => e.type === 'building-clicked')
         .compose(sampleCombine(dataQueryWithoutPlywood$))
@@ -167,11 +171,28 @@ export function App(sources: Sources<State>): Sinks<State> {
             MutateMapEventData[]
         >);
 
-    const buildingInteraction$: Stream<
+    return {
+        ...sinks,
+        dataQuery: xs.merge(dataQuery, mapDataQuery$, buildingDataQuery$),
+        layout: layout$,
+        commandGateway: commandGateway$,
+        map: xs.merge($showAssetOrigin, refreshMap$),
+        buildingInteraction: buildingInteraction$,
+        building: buildingInteraction$,
+        router: xs.merge(
+            redirect$,
+            firstTimePageLoad$,
+            handledNavigateEvents$,
+            sinks.router
+        )
+    };
+}
+
+function getBuildingInteractionStream(sources: Sources<State>) {
+    const buildingTableInteraction$: Stream<
         BuildingEventData<QueryEntity[]>
     > = sources.commandGateway
         .map(cmd => {
-            console.log('JAA', cmd);
             switch (cmd.type) {
                 case 'mouse-enter-entity':
                     return {
@@ -191,20 +212,31 @@ export function App(sources: Sources<State>): Sinks<State> {
             (bed?: BuildingEventData<QueryEntity[]>) => bed !== undefined
         ) as Stream<BuildingEventData<QueryEntity[]>>;
 
-    return {
-        ...sinks,
-        dataQuery: xs.merge(dataQuery, mapDataQuery$, buildingDataQuery$),
-        layout: layout$,
-        commandGateway: commandGateway$,
-        map: xs.merge($showAssetOrigin, refreshMap$),
-        building: buildingInteraction$,
-        router: xs.merge(
-            redirect$,
-            firstTimePageLoad$,
-            handledNavigateEvents$,
-            sinks.router
-        )
-    };
+    const buildingModelInteraction$: Stream<
+        BuildingEventData<QueryEntity[]>
+    > = sources.building
+        .map(cmd => {
+            console.log('JAA', cmd);
+            switch (cmd.type) {
+                case 'mouse-over-3d-object':
+                    return {
+                        type: 'selected-entities',
+                        data: [cmd.data]
+                    } as BuildingEventData<QueryEntity[]>;
+                case 'mouse-off-3d-object':
+                    return {
+                        type: 'selected-entities',
+                        data: []
+                    } as BuildingEventData<QueryEntity[]>;
+                default:
+                    return undefined;
+            }
+        })
+        .filter(
+            (bed?: BuildingEventData<QueryEntity[]>) => bed !== undefined
+        ) as Stream<BuildingEventData<QueryEntity[]>>;
+
+    return xs.merge(buildingTableInteraction$, buildingModelInteraction$);
 }
 
 function mapCommandsToMapEvents(
