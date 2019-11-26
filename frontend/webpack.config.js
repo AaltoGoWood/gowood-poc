@@ -22,5 +22,10 @@ module.exports = {
         filename: 'bundle.[hash].js',
         path: appPath('build'),
         publicPath: '/'
+    },
+    devServer: {
+        proxy: {
+            '/api': 'http://localhost:3000/'
+        }
     }
 };

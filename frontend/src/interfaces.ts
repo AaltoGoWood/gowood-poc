@@ -81,7 +81,18 @@ export interface RoutedComponentAcc<T = any> {
 
 export interface AttributesLayout {
     attributeTagFn: (field: string) => string;
+    shouldShowField: (field: string) => boolean;
+    formatLabel: (field: string) => string;
+    formatValue: (field: string, value: any) => string;
 }
+
+export interface PartialAttributesLayout {
+    attributeTagFn?: (field: string) => string;
+    shouldShowField?: (field: string) => boolean;
+    formatLabel?: (field: string) => string;
+    formatValue?: (field: string, value: any) => string;
+}
+
 export interface RowsLayout {}
 export interface CommandsLayout {
     showOrigins?: boolean;

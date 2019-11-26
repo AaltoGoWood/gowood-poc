@@ -1,0 +1,1 @@
+web: java -cp target/uberjar/query-service.jar clojure.main -m query-service.core
