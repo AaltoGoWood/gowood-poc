@@ -22,12 +22,14 @@ export interface State {
     rootDetails?: any;
     leafId?: string;
     leafDetails?: any;
+    selectingEntity: QueryEntity[];
 }
 export const defaultState: State = {
     rootId: undefined,
     rootDetails: undefined,
     leafId: undefined,
-    leafDetails: undefined
+    leafDetails: undefined,
+    selectingEntity: []
 };
 
 interface DOMIntent {
@@ -49,7 +51,12 @@ export function Building(
 
     return {
         DOM: view(state.stream, commandGateway$),
-        state: model(rootDataQuery$, dataQuery, commandGateway$),
+        state: model(
+            rootDataQuery$,
+            dataQuery,
+            commandGateway$,
+            sources.onHoverInteraction
+        ),
         dataQuery: query(rootDataQuery$, commandGateway$),
         commandGateway: commandGateway$
     };
@@ -73,7 +80,8 @@ function query(
 function model(
     rootDataQuery$: Stream<QueryEntity>,
     dataQuery: Stream<any>,
-    commandGateway$: Stream<Command>
+    commandGateway$: Stream<Command>,
+    buildingInteraction$: Stream<BuildingEventData<QueryEntity[]>>
 ): Stream<Reducer<State>> {
     const init$ = xs.of<Reducer<State>>(prevState =>
         prevState === undefined ? defaultState : prevState
@@ -101,12 +109,17 @@ function model(
             addToState({ leafId: undefined, leafDetails: undefined })
         );
 
+    const selectingObjectStream$ = buildingInteraction$
+        .filter(cmd => cmd.type === 'selected-entities')
+        .map(cmd => addToState({ selectingEntity: cmd.data || [] }));
+
     return xs.merge(
         init$,
         rootId$,
         rootDetails$,
         leafDetails$,
-        resetBuildingAssets$
+        resetBuildingAssets$,
+        selectingObjectStream$
     );
 }
 
@@ -114,35 +127,8 @@ interface RenderBuildingDetailsProps {
     id: string;
     type: string;
     rows: any[];
+    selectingEntity: QueryEntity[];
     dispatchFn: (e: Command) => void;
-}
-
-function dispatchBuildingEvent(eventData?: BuildingEventData): void {
-    console.log('>> dispatchBuildingEvent', eventData);
-    const event = new CustomEvent<BuildingEventData>('building-event', {
-        detail: eventData
-    });
-    document.body.dispatchEvent(event);
-}
-
-function onMouseEnterPlywood(plywoodId: string): void {
-    dispatchBuildingEvent({
-        type: 'mouse-enter-plywood',
-        data: {
-            type: 'plywood',
-            id: plywoodId
-        }
-    });
-}
-
-function onMouseLeavePlywood(plywoodId: string): void {
-    dispatchBuildingEvent({
-        type: 'mouse-leave-plywood',
-        data: {
-            type: 'plywood',
-            id: plywoodId
-        }
-    });
 }
 
 const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
@@ -166,14 +152,32 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
                 </thead>
                 <tbody>
                     {props.rows.map((row: any) => {
+                        const rowClass = props.selectingEntity.some(
+                            e => e.id === row.id && e.type === row.type
+                        )
+                            ? 'focus'
+                            : 'no-focus';
                         return (
                             <tr
+                                className={rowClass}
                                 id={`asset-${row.type}-id-${row.id}`}
                                 onmouseenter={(e: any) =>
-                                    onMouseEnterPlywood(row.id)
+                                    props.dispatchFn({
+                                        type: 'mouse-enter-entity',
+                                        data: {
+                                            type: row.type,
+                                            id: row.id
+                                        }
+                                    })
                                 }
                                 onmouseleave={(e: any) =>
-                                    onMouseLeavePlywood(row.id)
+                                    props.dispatchFn({
+                                        type: 'mouse-leave-entity',
+                                        data: {
+                                            type: row.type,
+                                            id: row.id
+                                        }
+                                    })
                                 }
                                 onclick={(e: any) => {
                                     e.preventDefault();
@@ -211,6 +215,7 @@ interface RenderAssetDetailsProps {
     parentTraversePath: QueryEntity[];
     attributes: any;
     rows: any[];
+    selectingEntity: QueryEntity[];
     layout: EntityLayout;
     dispatchFn: (e: Command) => void;
 }
@@ -276,8 +281,32 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                 </thead>
                 <tbody>
                     {props.rows.map((row: any) => {
+                        const rowClass = props.selectingEntity.some(
+                            e => e.id === row.id && e.type === row.type
+                        )
+                            ? 'focus'
+                            : 'no-focus';
                         return (
                             <tr
+                                className={rowClass}
+                                onmouseenter={(e: any) =>
+                                    props.dispatchFn({
+                                        type: 'mouse-enter-entity',
+                                        data: {
+                                            type: row.type,
+                                            id: row.id
+                                        }
+                                    })
+                                }
+                                onmouseleave={(e: any) =>
+                                    props.dispatchFn({
+                                        type: 'mouse-leave-entity',
+                                        data: {
+                                            type: row.type,
+                                            id: row.id
+                                        }
+                                    })
+                                }
                                 onclick={(e: any) => {
                                     e.preventDefault();
                                     const showOriginCmd: Command<
@@ -343,6 +372,7 @@ interface RenderDetailsPanelsProps {
     leafDetailsFound: boolean;
     rootDetails: any;
     leafDetails: any;
+    selectingEntity: QueryEntity[];
     dispatchFn: (e: any) => void;
 }
 function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
@@ -365,6 +395,7 @@ function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
                 id: props.rootDetails.req.id,
                 type: props.rootDetails.req.type,
                 rows: props.rootDetails.data.rows,
+                selectingEntity: props.selectingEntity,
                 dispatchFn: props.dispatchFn
             });
         case 'asset-details':
@@ -375,6 +406,7 @@ function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
                 rows: props.leafDetails.data.rows,
                 attributes: props.leafDetails.data.attributes,
                 layout: props.leafDetails.layout as EntityLayout,
+                selectingEntity: props.selectingEntity,
                 dispatchFn: props.dispatchFn
             });
         case 'loading':
@@ -400,6 +432,7 @@ function view(
                         state.leafDetails && state.leafDetails.found,
                     rootDetails: state.rootDetails,
                     leafDetails: state.leafDetails,
+                    selectingEntity: state.selectingEntity,
                     dispatchFn: dispatchFn
                 })}
             </div>

@@ -211,12 +211,21 @@ type MapEventData = {
     coords?: { lng: number; lat: number };
 };
 type MapDataEventHandler = (param: MutateMapEventData) => void;
-let markers: mapboxgl.Marker[] = [];
+type MarkerContainer = { marker: mapboxgl.Marker; data: any };
+let markers: MarkerContainer[] = [];
 
-const addMarkerTo = (coords: mapboxgl.LngLatLike, eventData?: MapEventData) => {
+const addMarkerTo = (coords: mapboxgl.LngLatLike, eventData: MapEventData) => {
     const el = document.createElement('div');
     el.className = 'marker';
     el.addEventListener('click', dispatchMapEventFn(eventData));
+    el.addEventListener(
+        'mouseenter',
+        dispatchMapEventFn({ ...eventData, type: 'map-object-mouse-enter' })
+    );
+    el.addEventListener(
+        'mouseleave',
+        dispatchMapEventFn({ ...eventData, type: 'map-object-mouse-leave' })
+    );
     return new mapboxgl.Marker(el).setLngLat(coords).addTo(map);
 };
 
@@ -225,8 +234,24 @@ const handlerStrategy: Dictionary<MapDataEventHandler> = {
         map.panTo(e.coords);
     },
     'reset-markers': e => {
-        markers.forEach(m => m.remove());
+        markers.forEach(m => m.marker.remove());
         markers = [];
+    },
+    'selected-entities': e => {
+        markers.forEach(m => {
+            const el: HTMLElement = m.marker.getElement();
+            const currentData = m.data;
+            const hasFocus = e.data.some(
+                (selected: any) =>
+                    selected.id === currentData.id &&
+                    selected.type === currentData.type
+            );
+            if (hasFocus) {
+                el.className = 'marker focus';
+            } else {
+                el.className = 'marker';
+            }
+        });
     },
     'ensure-tree': e => {
         const onClickEventData: MapEventData = {
@@ -234,9 +259,10 @@ const handlerStrategy: Dictionary<MapDataEventHandler> = {
             data: e.data,
             coords: e.coords
         };
-        markers.push(
-            addMarkerTo([e.coords.lng, e.coords.lat], onClickEventData)
-        );
+        markers.push({
+            marker: addMarkerTo([e.coords.lng, e.coords.lat], onClickEventData),
+            data: e.data
+        } as MarkerContainer);
     },
     refresh: () => {
         console.log('resize');

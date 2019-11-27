@@ -16,7 +16,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { BuildingEventData } from './../interfaces';
 import { curry, find, propEq } from 'ramda';
 
-type PlywoodHandler = (plywoodSheet: Object3D) => void;
+type PlywoodHandler = (plywoodSheet?: Object3D) => void;
 
 let scene: Scene, camera: Camera, renderer: Renderer;
 let controls: OrbitControls;
@@ -136,14 +136,16 @@ export function animate(): void {
 }
 
 function dispatchBuildingEvent(eventData?: BuildingEventData): void {
-    console.log('>> dispatchBuildingEvent', eventData);
     const event = new CustomEvent<BuildingEventData>('building-event', {
         detail: eventData
     });
     document.body.dispatchEvent(event);
 }
 
-function onMouse(onPlywoodSheet: PlywoodHandler, event: MouseEvent): void {
+function onMouse(
+    handlers: { overObject?: PlywoodHandler; offObjects?: PlywoodHandler },
+    event: MouseEvent
+): void {
     // calculate mouse position in normalized device coordinates
     // (-1 to +1) for both components.
     // The X coord needs to be adjusted to take sidepanel into account
@@ -157,27 +159,42 @@ function onMouse(onPlywoodSheet: PlywoodHandler, event: MouseEvent): void {
     // calculate objects intersecting the picking ray
     intersections = raycaster.intersectObjects(plywoodSheets, true);
 
-    const mouseMsg: String = `event.x:${event.x} event.y:${event.y} x:${mouse.x} y:${mouse.y}`;
+    // const mouseMsg: String = `event.x:${event.x} event.y:${event.y} x:${mouse.x} y:${mouse.y}`;
     if (intersections.length > 0) {
         const plywoodMesh: any = intersections[0].object;
-        console.log(
-            `${mouseMsg} And another one HITS THE TARGET!`,
-            intersections
-        );
-        console.log('plywood sheet id: ' + plywoodMesh.userData.id);
-        onPlywoodSheet(plywoodMesh);
+        handlers.overObject && handlers.overObject(plywoodMesh);
     } else {
-        console.log(mouseMsg);
+        handlers.offObjects && handlers.offObjects();
     }
 }
 
 function dispatchPlywoodClicked(plywoodMesh: Object3D): void {
-    //plywoodMesh.material.opacity = 1.0;
-    console.log('plywood mesh', plywoodMesh);
     const plywoodId: String = plywoodMesh.userData.id;
     if (plywoodId) {
         const eventData: BuildingEventData = {
             type: 'building-clicked',
+            data: {
+                type: 'plywood',
+                id: plywoodId
+            }
+        };
+        dispatchBuildingEvent(eventData);
+    }
+}
+
+function dispatchPlywoodHoverOff(): void {
+    const eventData: BuildingEventData = {
+        type: 'mouse-off-3d-object'
+    };
+    dispatchBuildingEvent(eventData);
+    return;
+}
+
+function dispatchPlywoodHover(plywoodMesh: Object3D): void {
+    const plywoodId: String = plywoodMesh.userData.id;
+    if (plywoodId) {
+        const eventData: BuildingEventData = {
+            type: 'mouse-over-3d-object',
             data: {
                 type: 'plywood',
                 id: plywoodId
@@ -206,21 +223,18 @@ document.body.addEventListener(
     (e: CustomEvent<BuildingEventData>) => {
         const type = e.detail.type;
         switch (type) {
-            case 'mouse-enter-plywood': {
-                const plywoodId = e.detail.data.id;
-                const plywoodMesh: Object3D | undefined = getPlywoodSheetWithId(
-                    plywoodSheets,
-                    plywoodId
-                );
-                if (plywoodMesh) {
-                    deHilightPlywoodSheets(plywoodSheets);
-                    hilightPlywoodSheet(plywoodMesh);
-                }
-                break;
-            }
-            case 'mouse-leave-plywood': {
+            case 'selected-entities': {
                 deHilightPlywoodSheets(plywoodSheets);
-                break;
+                (e.detail.data || [])
+                    .map((entity: any) =>
+                        getPlywoodSheetWithId(plywoodSheets, entity.id)
+                    )
+                    .filter(
+                        (plywoodMesh: Object3D) => plywoodMesh !== undefined
+                    )
+                    .forEach((plywoodMesh: Object3D) => {
+                        hilightPlywoodSheet(plywoodMesh);
+                    });
             }
             default: {
                 break;
@@ -231,6 +245,15 @@ document.body.addEventListener(
 
 container.addEventListener(
     'click',
-    curry(onMouse)(dispatchPlywoodClicked),
+    curry(onMouse)({ overObject: dispatchPlywoodClicked }),
+    false
+);
+
+container.addEventListener(
+    'mousemove',
+    curry(onMouse)({
+        overObject: dispatchPlywoodHover,
+        offObjects: dispatchPlywoodHoverOff
+    }),
     false
 );

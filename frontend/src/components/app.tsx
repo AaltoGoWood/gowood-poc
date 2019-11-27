@@ -15,7 +15,8 @@ import {
     MutateMapEventData,
     RoutedComponentAcc,
     RouteProps,
-    BuildingEventData
+    BuildingEventData,
+    QueryEntity
 } from '../interfaces';
 
 import { LandingPanel, State as LandingPageState } from './landing-panel';
@@ -27,7 +28,6 @@ import { Dictionary } from 'ramda';
 import view from 'ramda/es/view';
 import { DataResponse, DataRequest } from '../drivers/dataQueryDriver';
 import { State as LayoutState } from '../drivers/layoutDriver';
-import { Layout } from 'mapbox-gl';
 export interface State {
     mapSearch?: LandingPageState;
     building?: DetailPanelState;
@@ -37,6 +37,12 @@ export function App(sources: Sources<State>): Sinks<State> {
     const commandGateway$: Stream<Command> =
         sources.commandGateway || xs.never();
     sources.commandGateway = commandGateway$;
+
+    const onHoverInteraction$: Stream<
+        BuildingEventData<QueryEntity[]>
+    > = onHoverInteractionStream(sources);
+    sources.onHoverInteraction =
+        sources.onHoverInteraction || onHoverInteraction$;
 
     const map$ = sources.map;
     const mapDataQuery$ = map$
@@ -52,6 +58,7 @@ export function App(sources: Sources<State>): Sinks<State> {
     const dataQueryWithoutPlywood$ = sources.dataQuery.filter(
         query => query.req.type !== 'plywood'
     );
+
     const buildingDataQuery$ = sources.building
         .filter(e => e.type === 'building-clicked')
         .compose(sampleCombine(dataQueryWithoutPlywood$))
@@ -157,7 +164,10 @@ export function App(sources: Sources<State>): Sinks<State> {
 
     const sinks = extractSinks(componentSinks$, driverNames);
     const { dataQuery } = sinks;
-    const $showAssetOrigin = mapCommandsToMapEvents(commandGateway$);
+    const $showAssetOrigin = mapCommandsToMapEvents(
+        commandGateway$,
+        sources.onHoverInteraction
+    );
 
     const refreshMap$ = layout$
         .filter(l => l.map)
@@ -171,6 +181,8 @@ export function App(sources: Sources<State>): Sinks<State> {
         layout: layout$,
         commandGateway: commandGateway$,
         map: xs.merge($showAssetOrigin, refreshMap$),
+        onHoverInteraction: onHoverInteraction$,
+        building: onHoverInteraction$,
         router: xs.merge(
             redirect$,
             firstTimePageLoad$,
@@ -180,10 +192,106 @@ export function App(sources: Sources<State>): Sinks<State> {
     };
 }
 
+function onHoverInteractionStream(
+    sources: Sources<State>
+): Stream<BuildingEventData<QueryEntity[]>> {
+    const buildingTableInteraction$: Stream<
+        BuildingEventData<QueryEntity[]>
+    > = sources.commandGateway
+        .map(cmd => {
+            switch (cmd.type) {
+                case 'mouse-enter-entity':
+                    return {
+                        type: 'selected-entities',
+                        data: [cmd.data]
+                    } as BuildingEventData<QueryEntity[]>;
+                case 'mouse-leave-entity':
+                    return {
+                        type: 'selected-entities',
+                        data: []
+                    } as BuildingEventData<QueryEntity[]>;
+                default:
+                    return undefined;
+            }
+        })
+        .filter(
+            (bed?: BuildingEventData<QueryEntity[]>) => bed !== undefined
+        ) as Stream<BuildingEventData<QueryEntity[]>>;
+
+    const buildingModelInteraction$: Stream<
+        BuildingEventData<QueryEntity[]>
+    > = sources.building
+        .map(cmd => {
+            switch (cmd.type) {
+                case 'mouse-over-3d-object':
+                    return {
+                        type: 'selected-entities',
+                        data: [cmd.data]
+                    } as BuildingEventData<QueryEntity[]>;
+                case 'mouse-off-3d-object':
+                    return {
+                        type: 'selected-entities',
+                        data: []
+                    } as BuildingEventData<QueryEntity[]>;
+                default:
+                    return undefined;
+            }
+        })
+        .filter(
+            (bed?: BuildingEventData<QueryEntity[]>) => bed !== undefined
+        ) as Stream<BuildingEventData<QueryEntity[]>>;
+
+    const mapInteraction$: Stream<
+        BuildingEventData<QueryEntity[]>
+    > = sources.map
+        .map(cmd => {
+            switch (cmd.type) {
+                case 'map-object-mouse-enter':
+                    return {
+                        type: 'selected-entities',
+                        data: [cmd.data]
+                    } as BuildingEventData<QueryEntity[]>;
+                case 'map-object-mouse-leave':
+                    return {
+                        type: 'selected-entities',
+                        data: []
+                    } as BuildingEventData<QueryEntity[]>;
+                default:
+                    return undefined;
+            }
+        })
+        .filter(
+            (bed?: BuildingEventData<QueryEntity[]>) => bed !== undefined
+        ) as Stream<BuildingEventData<QueryEntity[]>>;
+
+    return xs.merge(
+        buildingTableInteraction$,
+        buildingModelInteraction$,
+        mapInteraction$
+    );
+}
+
 function mapCommandsToMapEvents(
-    commandGateway$: Stream<Command>
+    commandGateway$: Stream<Command>,
+    onHoverInteractionStream$: Stream<BuildingEventData<QueryEntity[]>>
 ): Stream<Command<MutateMapEventData[]>> {
     return xs.merge(
+        onHoverInteractionStream$
+            .filter(cmd => cmd.type === 'selected-entities')
+            .map(
+                cmd =>
+                    ({
+                        type: 'selected-entities',
+                        data: [
+                            {
+                                type: 'selected-entities',
+                                data: cmd.data,
+                                coords: undefined
+                            }
+                        ] as MutateMapEventData[]
+                    } as Command<MutateMapEventData[]>)
+            ),
+
         commandGateway$
             .filter(cmd => cmd.type === 'show-asset-origin')
             .map((cmd: Command) => {
