@@ -55,7 +55,7 @@
   (let [g (get-graph)]
     (-> g V (ogre/drop) (.iterate))))
 
-(defn count-V 
+(defn count-V
   "count-V return number of nodes (verticles) in graph.
    Function is created for mainly dev purpose"
   []
@@ -64,7 +64,7 @@
      (first (traverse g V (.count) (ogre/into-vec!)))
      0)))
 
-(defn count-E 
+(defn count-E
   "count-E return number of edges in graph.
    Function is created for mainly dev purpose"
   []
@@ -124,6 +124,27 @@
         (composed-of "plywood/p124" "tree-trunk/p124-1")
         (composed-of "plywood/p125" "tree-trunk/p125-1")
         (.next))))
+
+
+(def test-data
+  [{:type "entity" :node-type "building" :node-id "A1"}
+   {:type "entity" :node-type "building" :node-id "A2"}
+   {:type "entity" :node-type "plywood" :node-id "p1" :attributes {"producer" "UPM Plywood"}}
+   {:type "edge" :from "building/A1" :to "plywood/p1"}]  )
+
+(defmulti add-item (fn [_ {:keys [type] :as item}] type))
+
+(defmethod add-item "entity" [g {:keys [node-type node-id attributes] :as item}]
+  (entity g node-type node-id attributes))
+
+(defmethod add-item "edge" [g {:keys [node-type from to] :as item}]
+  (composed-of g from to))
+
+(defn add-data
+  "Add a data set of nodes and/or vertices to the database"
+  [data]
+  (let [traversal (reduce add-item (get-graph) data)]
+    (.next traversal)))
 
 (defn get-nodes []
   (let [g (get-graph)]
