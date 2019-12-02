@@ -23,7 +23,19 @@
 (s/def ::from (s/keys :req-un [::type ::id]))
 (s/def ::operations-body (s/keys :opt-un [::from ]))
 
-(defn root-route [] 
+(s/def :upload/type #{"entity" "edge"})
+(s/def :upload/node-type string?) ;;Supported #{"building" "plywood" "tree-trunk"}
+(s/def :upload/node-id string?)
+(s/def :upload/from string?)
+(s/def :upload/to string?)
+(s/def :upload/attributes (s/map-of string? (s/or :s string? :i int? :b boolean?)))
+(s/def :upload/add-entity (s/keys :req-un [:upload/node-type :upload/node-id] :opt-un [:upload/attributes]))
+(s/def :upload/compose-of (s/keys :req-un [:upload/from :upload/to]))
+(s/def :upload/entities (s/coll-of :upload/add-entity))
+(s/def :upload/composed-of-edges (s/coll-of :upload/compose-of))
+(s/def :upload/body (s/keys :opt-un [:upload/entities :upload/composed-of-edges]))
+
+(defn root-route []
   ["/" {:get (constantly (redirect "/api/api-docs/" 302))}])
 
 (defn service-routes []
@@ -60,7 +72,7 @@
      {:get (swagger-ui/create-swagger-ui-handler
             {:url "/api/swagger.json"
              :config {:validator-url nil}})}]]
-   
+
    ["/ping"
     {:get (constantly (ok {:message "pong"}))}]
 
@@ -75,10 +87,25 @@
                         (let [op (get-in parameters [:path :operation])
                               cmd-body (get-in parameters [:body])]
                           (case op
-                            "info-with-first-level-components-fake" 
+                            "info-with-first-level-components-fake"
                             (ok (fake-db/apply-command op cmd-body))
                             (ok (ogre-db/apply-command op cmd-body)))))}}]]
-   
+
+   ["/data"
+    {:swagger {:tags ["data"]}}
+    ["/upload"
+     {:post {:summary "Add a data set to the db"
+             :parameters {:body :upload/body}
+             :handler (fn [{{{:keys [entities composed-of-edges] :as body} :body} :parameters}]
+                        (let [entities (map #(assoc % :type "entity") entities)
+                              edges    (map #(assoc % :type "edge") composed-of-edges)
+                              data     (concat entities edges)]
+                          (println "Request data: " body)
+                          (println "data to be added to the db: " entities)
+                          (ogre-db/add-data data))
+                        (println "Data added to the db")
+                        (ok "ok"))}}]]
+
    ["/db"
     {:swagger {:tags ["POC admin"]}}
     ["/janus-graph"
@@ -94,4 +121,3 @@
                         (ogre-db/init-poc-graph)
                         (println "db seeded")
                         (ok "ok"))}}]]])
-
