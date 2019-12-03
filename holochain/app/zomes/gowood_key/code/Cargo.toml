@@ -1,5 +1,5 @@
 [package]
-name = "cargo_key"
+name = "gowood_key"
 version = "0.1.0"
 authors = ["hc-scaffold-framework"]
 edition = "2018"
