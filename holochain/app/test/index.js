@@ -34,15 +34,15 @@ orchestrator.registerScenario("description of example test", async (s, t) => {
   await gowood_key.spawn()
   // Make a call to a Zome function
   // indicating the function, and passing it an input
-  const addr = await gowood_key.call("gowood_key", "gowood_key", "create_my_entry", {"entry" : {"content":"sample content"}})
+  const addr = await gowood_key.call("gowood_key", "gowood_key", "create_key_for_value ", {"value" : { "type":"plywood", "id": "p123" }})
 
   // Wait for all network activity to
   await s.consistency()
 
-  const result = await gowood_key.call("gowood_key", "gowood_key", "get_my_entry", {"address": addr.Ok})
+  const result = await gowood_key.call("gowood_key", "gowood_key", "get_value_from_key ", {"key": addr.Ok})
 
   // check for equality of the actual and expected results
-  t.deepEqual(result, { Ok: { App: [ 'my_entry', '{"content":"sample content"}' ] } })
+  t.deepEqual(result, { Ok: { App: [ 'gowood_asset', '{"type":"plywood", "id": "p123" }' ] } })
 })
 
 orchestrator.run()
