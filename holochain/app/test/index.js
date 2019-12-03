@@ -1,13 +1,13 @@
 const { Orchestrator, Config } = require('@holochain/tryorama')
 
-const dnaPlywood = Config.dna(__dirname + '/../dist/holochain.dna.json', 'plywood');
+const dnaGowoodKey = Config.dna(__dirname + '/../dist/holochain.dna.json', 'gowood_key');
 const dneFile = require('../dist/holochain.dna.json')
 
 // Set up a Conductor configuration using the handy `Conductor.config` helper.
 // Read the docs for more on configuration.
 const mainConfig = Config.gen(
   {
-    plywood: dnaPlywood,  // agent_id="plywood", instance_id="plywood", dna=dnaPlywood
+    gowood_key: dnaGowoodKey,  // agent_id="plywood", instance_id="plywood", dna=dnaPlywood
   },
   {
     // specify a bridge from chat to blog
@@ -30,16 +30,16 @@ const orchestrator = new Orchestrator()
 
 orchestrator.registerScenario("description of example test", async (s, t) => {
 
-  const { plywood } = await s.players({plywood: mainConfig })
-  await plywood.spawn()
+  const { gowood_key } = await s.players({gowood_key: mainConfig })
+  await gowood_key.spawn()
   // Make a call to a Zome function
   // indicating the function, and passing it an input
-  const addr = await plywood.call("plywood", "plywood", "create_my_entry", {"entry" : {"content":"sample content"}})
+  const addr = await gowood_key.call("gowood_key", "gowood_key", "create_my_entry", {"entry" : {"content":"sample content"}})
 
   // Wait for all network activity to
   await s.consistency()
 
-  const result = await plywood.call("plywood", "plywood", "get_my_entry", {"address": addr.Ok})
+  const result = await gowood_key.call("gowood_key", "gowood_key", "get_my_entry", {"address": addr.Ok})
 
   // check for equality of the actual and expected results
   t.deepEqual(result, { Ok: { App: [ 'my_entry', '{"content":"sample content"}' ] } })
