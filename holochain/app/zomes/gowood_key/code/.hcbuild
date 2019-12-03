@@ -10,32 +10,32 @@
     },
     {
       "command": "wasm-gc",
-      "arguments": ["target/wasm32-unknown-unknown/release/hello.wasm"]
+      "arguments": ["target/wasm32-unknown-unknown/release/gowood_key.wasm"]
     },
     {
       "command": "wasm-opt",
       "arguments": [
         "-Oz",
         "--vacuum",
-        "target/wasm32-unknown-unknown/release/hello.wasm"
+        "target/wasm32-unknown-unknown/release/gowood_key.wasm"
       ]
     },
     {
       "command": "wasm2wat",
       "arguments": [
-        "target/wasm32-unknown-unknown/release/hello.wasm",
+        "target/wasm32-unknown-unknown/release/gowood_key.wasm",
         "-o",
-        "target/wasm32-unknown-unknown/release/hello.wat"
+        "target/wasm32-unknown-unknown/release/gowood_key.wat"
       ]
     },
     {
       "command": "wat2wasm",
       "arguments": [
-        "target/wasm32-unknown-unknown/release/hello.wat",
+        "target/wasm32-unknown-unknown/release/gowood_key.wat",
         "-o",
-        "target/wasm32-unknown-unknown/release/hello.wasm"
+        "target/wasm32-unknown-unknown/release/gowood_key.wasm"
       ]
     }
   ],
-  "artifact": "target/wasm32-unknown-unknown/release/hello.wasm"
+  "artifact": "target/wasm32-unknown-unknown/release/gowood_key.wasm"
 }
