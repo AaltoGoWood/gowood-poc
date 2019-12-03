@@ -18,7 +18,7 @@ docker run -it -p 8888:8888 --name holo-test-1 --mount src="$(pwd)"/app,target=/
 # Returning to a stopped container
 
 ```
-docker start holo-test
+docker start holo-test-1
 ```
 
 # Holochain development flow
