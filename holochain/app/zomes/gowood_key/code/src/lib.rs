@@ -35,8 +35,9 @@ use hdk_proc_macros::zome;
 // agent's chain via the exposed function create_my_entry
 
 #[derive(Serialize, Deserialize, Debug, DefaultJson,Clone)]
-pub struct MyEntry {
-    content: String,
+pub struct AssetsIdentity {
+    r#type: String,
+    id: String,
 }
 
 #[zome]
@@ -55,27 +56,27 @@ mod my_zome {
     #[entry_def]
      fn my_entry_def() -> ValidatingEntryType {
         entry!(
-            name: "my_entry",
+            name: "assets_identity",
             description: "this is a same entry defintion",
             sharing: Sharing::Public,
             validation_package: || {
                 hdk::ValidationPackageDefinition::Entry
             },
-            validation: | _validation_data: hdk::EntryValidationData<MyEntry>| {
+            validation: | _validation_data: hdk::EntryValidationData<AssetsIdentity>| {
                 Ok(())
             }
         )
     }
 
     #[zome_fn("hc_public")]
-    fn create_my_entry(entry: MyEntry) -> ZomeApiResult<Address> {
-        let entry = Entry::App("my_entry".into(), entry.into());
+    fn create_key_from_value(value: AssetsIdentity) -> ZomeApiResult<Address> {
+        let entry = Entry::App("assets_identity".into(), value.into());
         let address = hdk::commit_entry(&entry)?;
         Ok(address)
     }
 
     #[zome_fn("hc_public")]
-    fn get_my_entry(address: Address) -> ZomeApiResult<Option<Entry>> {
+    fn get_value_from_key(address: Address) -> ZomeApiResult<Option<Entry>> {
         hdk::get_entry(&address)
     }
 

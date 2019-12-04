@@ -12,7 +12,7 @@ test_agent = true
 
 [[dnas]]
 file = '/holochain/dist/holochain.dna.json'
-hash = 'QmcZuUN6F8TPNWEKQ74hbMoqBcMhJN6MqWu32QZrXJfyv6'
+hash = 'QmdARLiFDV9MkStN97o1MXEcN559gNyiwm3Z96v2VKHgXg'
 id = 'hc-run-dna'
 
 [[instances]]
