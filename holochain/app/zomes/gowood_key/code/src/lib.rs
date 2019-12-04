@@ -58,7 +58,7 @@ mod my_zome {
         entry!(
             name: "assets_identity",
             description: "this is a same entry defintion",
-            sharing: Sharing::Public,
+            sharing: Sharing::Private,
             validation_package: || {
                 hdk::ValidationPackageDefinition::Entry
             },
