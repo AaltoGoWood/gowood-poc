@@ -36,7 +36,7 @@ type = 'http'
 
 [logger]
 state_dump = true
-type = 'debug'
+type = 'warn'
 
 [logger.rules]
 rules = []
