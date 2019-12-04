@@ -12,7 +12,7 @@ test_agent = true
 
 [[dnas]]
 file = '/holochain/dist/holochain.dna.json'
-hash = 'QmcZuUN6F8TPNWEKQ74hbMoqBcMhJN6MqWu32QZrXJfyv6'
+hash = 'Qmdc8sn3rc6aBdQa3mNa8bhGk3d8V7CLj8ec7SxG2kpKin'
 id = 'hc-run-dna'
 
 [[instances]]
@@ -37,9 +37,21 @@ type = 'http'
 [logger]
 state_dump = true
 type = 'debug'
+[[logger.rules.rules]]
+exclude = true
+pattern = '.*'
 
-[logger.rules]
-rules = []
+[[logger.rules.rules]]
+exclude = false
+pattern = '^lib3h'
+
+[[logger.rules.rules]]
+exclude = false
+pattern = '^holochain'
+
+[[logger.rules.rules]]
+exclude = false
+pattern = '^lib3h'
 
 [passphrase_service]
 type = 'cmd'

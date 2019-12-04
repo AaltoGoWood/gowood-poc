@@ -32,10 +32,10 @@ orchestrator.registerScenario("description of example test", async (s, t) => {
 
   const { gowood_key } = await s.players({gowood_key: mainConfig })
   await gowood_key.spawn()
-  // Make a call to a Zome function
+  // Make a call to a Zome ffsdfunction
   // indicating the function, and passing it an input
   const addr = await gowood_key.call("gowood_key", "gowood_key", "create_key_for_value ", {"value" : { "type":"plywood", "id": "p123" }})
-
+  
   // Wait for all network activity to
   await s.consistency()
 
