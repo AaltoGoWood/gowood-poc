@@ -2,7 +2,7 @@ FROM holochain/holonix:ubuntu
 
 # this basically initialzie holochain for the default user (docker)
 RUN curl https://nixos.org/nix/install | sh
-RUN . /home/docker/.nix-profile/etc/profile.d/nix.sh
+RUN echo ". /home/docker/.nix-profile/etc/profile.d/nix.sh" >> /home/docker/.bashrc
 
 EXPOSE 8888
 WORKDIR /holochain
