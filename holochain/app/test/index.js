@@ -42,7 +42,7 @@ orchestrator.registerScenario("description of example test", async (s, t) => {
   const result = await gowood_key.call("gowood_key", "gowood_key", "get_value_from_key ", {"key": addr.Ok})
 
   // check for equality of the actual and expected results
-  t.deepEqual(result, { Ok: { App: [ 'gowood_asset', '{"type":"plywood", "id": "p123" }' ] } })
+  t.deepEqual(result, { Ok: { App: [ 'asset_identity', '{"type":"plywood", "id": "p123" }' ] } })
 })
 
 orchestrator.run()
