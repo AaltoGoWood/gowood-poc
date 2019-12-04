@@ -42,8 +42,8 @@ orchestrator.registerScenario("test_1", async (s, t) => {
 
 orchestrator.run()
   .catch(err => {
-    console.log('err', JSON.stringify(err))
+    console.error('>>> Test runner failed', JSON.stringify(err))
   })
   .then(res => {
-    console.log(res);
+    console.log('Test result', res);
   });
