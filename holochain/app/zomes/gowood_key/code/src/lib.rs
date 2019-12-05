@@ -69,14 +69,16 @@ mod my_zome {
     }
 
     #[zome_fn("hc_public")]
-    fn create_key_from_value(value: AssetsIdentity) -> ZomeApiResult<Address> {
+    fn create_key_from_value(value: AssetsIdentity) -> ZomeApiResult<String> {
         let entry = Entry::App("assets_identity".into(), value.into());
         let address = hdk::commit_entry(&entry)?;
-        Ok(address)
+        let encrypted_address = hdk::encrypt(address).unwrap();
+        Ok(encrypted_address)
     }
 
     #[zome_fn("hc_public")]
-    fn get_value_from_key(address: Address) -> ZomeApiResult<Option<Entry>> {
+    fn get_value_from_key(key: String) -> ZomeApiResult<Option<Entry>> {
+        let address = hdk::decrypt(key).map(Address::from).unwrap();
         hdk::get_entry(&address)
     }
 
