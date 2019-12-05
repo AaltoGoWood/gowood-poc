@@ -17,7 +17,7 @@ public_address = 'HcScIqSVHnZue967e49eMm3RJ985scP5jrGwMpUaH7876nffVyUaNuybcqxbm7
 
 [[dnas]]
 file = '/holochain/dist/holochain.dna.json'
-hash = 'QmQob3KcztUUNSva34yoVRVZ5UaUPiBfiuNocmJt9RLDsX'
+hash = 'QmcejmBp67s2ceSYTaaWCkSZjLkXm4uDLLnxz94vfAfn8Q'
 id = 'hc-run-dna'
 
 [[instances]]
@@ -37,7 +37,6 @@ id = 'test-instance-2'
 [instances.storage]
 type = 'file'
 path = 'file_storage/agent-2'
-
 
 [[interfaces]]
 admin = true
