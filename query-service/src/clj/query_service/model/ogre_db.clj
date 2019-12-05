@@ -1,9 +1,12 @@
 (ns query-service.model.ogre-db
   (:require
    [clojure.edn :as edn]
+   ;;[clojure.walk :refer [keywordize-keys]]
    [clojurewerkz.ogre.core :refer [open-graph traversal traverse value-map
                                    match out has in select into-seq!
-                                   values as by V __] :as ogre])
+                                   values as by V __] :as ogre]
+   [query-service.model.holochain :as holo])
+
   (:import (org.apache.tinkerpop.gremlin.process.traversal Compare Operator Order P Pop SackFunctions$Barrier Scope Traversal)
            (org.apache.tinkerpop.gremlin.structure Graph T Column VertexProperty$Cardinality Vertex)
            (org.apache.tinkerpop.gremlin.structure.util GraphFactory)
@@ -89,13 +92,14 @@
       (.from fromNode)
       (.to toNode)))
 
-(defn init-poc-graph []
+(defn init-poc-graph-without-holodata []
   (let [g (get-graph)]
     (-> g
         (entity "building" "746103")
         (entity "plywood" "p123" {"producer" "UPM Plywood"})
         (entity "plywood" "p124" {"producer" "UPM Plywood"})
         (entity "plywood" "p125" {"producer" "UPM Plywood"})
+
         (entity "tree-trunk" "p123-1"  {"speciesOfTree" "Pine"
                                         "trunkWidth" 75
                                         "timestamp" "2019-10-14T09:12:13.012Z"
@@ -119,6 +123,7 @@
         (composed-of "building/746103" "plywood/p123")
         (composed-of "building/746103" "plywood/p124")
         (composed-of "building/746103" "plywood/p125")
+
         (composed-of "plywood/p123" "tree-trunk/p123-1")
         (composed-of "plywood/p123" "tree-trunk/p123-2")
         (composed-of "plywood/p124" "tree-trunk/p124-1")
@@ -146,6 +151,49 @@
   (let [traversal (reduce add-item (get-graph) data)]
     (.next traversal)))
 
+(defn init-poc-graph-with-holodata []
+  (let [g (get-graph)]
+    (-> g
+        (entity "building" "746103")
+        (entity "plywood" "p123" {"producer" "UPM Plywood"})
+        (entity "plywood" "p124" {"producer" "UPM Plywood"})
+        ;; (entity "plywood" "p125" {"producer" "UPM Plywood"})
+
+        (entity "gowood-asset" holo/p124-key)
+
+        (entity "tree-trunk" "p123-1"  {"speciesOfTree" "Pine"
+                                        "trunkWidth" 75
+                                        "timestamp" "2019-10-14T09:12:13.012Z"
+                                        "length" 20
+                                        "coords" "25.474273614, 65.0563745" })
+        (entity "tree-trunk" "p123-2" {"speciesOfTree" "Pine"
+                                       "trunkWidth" 60
+                                       "timestamp" "2019-10-12T09:12:13.012Z"
+                                       "length" 30
+                                       "coords" "25.474293614, 65.0543745"})
+        (entity "tree-trunk" "p124-1" {"speciesOfTree" "Pine"
+                                        "trunkWidth" 60
+                                        "timestamp" "2019-10-11T09:10:13.012Z"
+                                        "length" 25
+                                        "coords" "25.474243614, 65.0503745"})
+        (entity "tree-trunk" "p125-1" {"speciesOfTree" "Pine"
+                                       "trunkWidth" 60
+                                       "timestamp" "2019-10-11T09:10:13.012Z"
+                                       "length" 25
+                                       "coords" "25.484243614, 65.0503645"})
+        (composed-of "building/746103" "plywood/p123")
+        ;;(composed-of "building/746103" "plywood/p124")
+        ;; (composed-of "building/746103" "plywood/p125")
+
+        ;;(composed-of "building/746103" (str "gowood-asset/" holo/hc-key))
+        (composed-of "building/746103" (str "gowood-asset/" holo/p124-key))
+
+        (composed-of "plywood/p123" "tree-trunk/p123-1")
+        (composed-of "plywood/p123" "tree-trunk/p123-2")
+        (composed-of "plywood/p124" "tree-trunk/p124-1")
+        ;; (composed-of "plywood/p125" "tree-trunk/p125-1")
+        (.next))))
+
 (defn get-nodes []
   (let [g (get-graph)]
     (traverse g V
@@ -170,11 +218,26 @@
     (traverse g ogre/E
       (ogre/into-vec!))))
 
+(defn ->normal-data-row [{:keys [type id] :as row}]
+  (if (holo-row? row)
+    (let [{:keys [status] :as holochain-record} (holo/fetch-asset-id id)]
+      (when-not (= :error status)
+        (keywordize-keys holochain-record)))
+    row))
+
+(defn holo-row? [{:keys [type]}]
+  (= type "gowood-asset"))
+
+(defn with-data-from-holochain [{:keys [rows] :as data}]
+  (assoc data :rows (map ->normal-data-row rows)))
+
 (defn apply-command [op body]
   (let [{{id :id type :type} :from} body
-        data (get-node-with-components type id)
+        data-raw (get-node-with-components type id)
+        data (with-data-from-holochain data-raw)
         found? (some? data)]
-    (println "orge -> id: " id "; type: " type "; found " found?)
+    (println "result data: " data)
+    (println "ogre -> id: " id "; type: " type "; found " found?)
     {:req {:op op :body body}
      :result {:found found?
               :data data}

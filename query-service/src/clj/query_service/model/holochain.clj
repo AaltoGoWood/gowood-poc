@@ -18,7 +18,17 @@
       second
       json/read-str))
 
-(def hc-key "H0tq8cS3MdqGBy6pD7bNBJHXIayOjAlQe4YIjjkAuJThwoeWZ9b6Y23SGQpLtzaQPLt4OZHzQkSD+fYxRfF+06/7GUy7xe1bl+q8UHCANu7cTC9VbUA=")
+
+;; p123
+;; (def hc-key "H0tq8cS3MdqGBy6pD7bNBJHXIayOjAlQe4YIjjkAuJThwoeWZ9b6Y23SGQpLtzaQPLt4OZHzQkSD+fYxRfF+06/7GUy7xe1bl+q8UHCANu7cTC9VbUA=")
+
+;; p124
+(def p124-key "QK1FK69yPtTTqio3DWE0Neo1253hHzIWXnvwcTlSN2mRUEQJdidT3Eek9KB49PKJ3AhTSIXoXTqHf+YLQhwFtoqX8vbVYiM7LWpPL+YLnTU/56iNk5o=")
+
+
+;; pholo1
+(def hc-key "ncdOClS5lyuNURzArml3TmsGAbwMHEWyP5tV58+B/vLXC4uh9hq0AnlfClyQW/qVVBN6VXGR/aP0LhgXkdtJtFJ3ccK/LI6c+9kenohSVR89WEC9Vnk=")
+
 
 (defn fetch-asset-id
   ;; Key = holochain entry address encrypted by the agent we are calling
@@ -38,4 +48,4 @@
 
       (case status
         200 (parse-asset-id response)
-        {:status status :msg (format "Error HTTP response. Status %s" status)}))))
+        {:http-status status :status :error :msg (format "Error HTTP response. Status %s" status)}))))
