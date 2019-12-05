@@ -78,6 +78,12 @@ mod my_zome {
         )
     }
 
+    #[receive]
+    fn receive_callback(_from: Address, key: String) -> String {
+        let address = hdk::decrypt(key.to_string()).map(Address::from).unwrap();
+        hdk::get_entry(&address).map(|entry| JsonString::from(entry).to_string()).unwrap()
+    }
+
     #[zome_fn("hc_public")]
     fn create_key_from_value(value: AssetsIdentity) -> ZomeApiResult<String> {
         let entry = Entry::App("assets_identity".into(), value.into());
@@ -112,11 +118,20 @@ mod my_zome {
             [sub, key, sig] => {
                 let address: Address = Address::from(sub.to_string());
                 let signature = Signature::from(sig.to_string());
+
+
                 let key_provenance = Provenance::new(address, signature);
                 let verify_result = hdk::verify_signature(key_provenance, &key.to_string());
-                if verify_result.is_ok() && verify_result.unwrap() {
+                let is_signature_valid = verify_result.is_ok() && verify_result.unwrap();
+                let is_this_agent = &sub.to_string() == &hdk::AGENT_ADDRESS.to_string();
+                if is_signature_valid && is_this_agent {
                     let address = hdk::decrypt(key.to_string()).map(Address::from).unwrap();
                     hdk::get_entry(&address)
+                } else if is_signature_valid && !is_this_agent  {
+                    let address: Address = Address::from(sub.to_string());
+                    let response_json: String = hdk::send(address, key.to_string(), 5000.into()).unwrap();
+                    let entry: Entry = serde_json::from_str(r#response_json.as_ref()).unwrap();
+                    Ok(Some(entry))
                 } else {
                     let e = ZomeApiError::Internal("invalid signature".into());
                     std::result::Result::Err(e)
