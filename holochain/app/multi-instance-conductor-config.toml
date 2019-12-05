@@ -17,7 +17,7 @@ public_address = 'HcScIqSVHnZue967e49eMm3RJ985scP5jrGwMpUaH7876nffVyUaNuybcqxbm7
 
 [[dnas]]
 file = '/holochain/dist/holochain.dna.json'
-hash = 'QmcejmBp67s2ceSYTaaWCkSZjLkXm4uDLLnxz94vfAfn8Q'
+hash = 'QmfYF59jgzFdtzy2bheXoq9tpt4jf8vRvqYuMfBqqy8fav'
 id = 'hc-run-dna'
 
 [[instances]]
