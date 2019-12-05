@@ -152,14 +152,19 @@
     (.next traversal)))
 
 (defn init-poc-graph-with-holodata []
-  (let [g (get-graph)]
+  (let [g (get-graph)
+        holo-keys {:p123 (holo/add-asset-id! "plywood" "p123")
+                   :p124 (holo/add-asset-id! "plywood" "p124")
+                   :p125 (holo/add-asset-id! "plywood" "p125")}]
     (-> g
         (entity "building" "746103")
         (entity "plywood" "p123" {"producer" "UPM Plywood"})
         (entity "plywood" "p124" {"producer" "UPM Plywood"})
-        ;; (entity "plywood" "p125" {"producer" "UPM Plywood"})
+        (entity "plywood" "p125" {"producer" "UPM Plywood"})
 
-        (entity "gowood-asset" holo/p124-key)
+        (entity "gowood-asset" (:p123 holo-keys))
+        (entity "gowood-asset" (:p124 holo-keys))
+        (entity "gowood-asset" (:p125 holo-keys))
 
         (entity "tree-trunk" "p123-1"  {"speciesOfTree" "Pine"
                                         "trunkWidth" 75
@@ -181,17 +186,14 @@
                                        "timestamp" "2019-10-11T09:10:13.012Z"
                                        "length" 25
                                        "coords" "25.484243614, 65.0503645"})
-        (composed-of "building/746103" "plywood/p123")
-        ;;(composed-of "building/746103" "plywood/p124")
-        ;; (composed-of "building/746103" "plywood/p125")
 
-        ;;(composed-of "building/746103" (str "gowood-asset/" holo/hc-key))
-        (composed-of "building/746103" (str "gowood-asset/" holo/p124-key))
+        (composed-of "building/746103" (str "gowood-asset/" (:p123 holo-keys)))
+        (composed-of "building/746103" (str "gowood-asset/" (:p124 holo-keys)))
+        (composed-of "building/746103" (str "gowood-asset/" (:p125 holo-keys)))
 
         (composed-of "plywood/p123" "tree-trunk/p123-1")
         (composed-of "plywood/p123" "tree-trunk/p123-2")
         (composed-of "plywood/p124" "tree-trunk/p124-1")
-        ;; (composed-of "plywood/p125" "tree-trunk/p125-1")
         (.next))))
 
 (defn get-nodes []
