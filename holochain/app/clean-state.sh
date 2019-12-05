@@ -1,2 +1,3 @@
-rm file_storage/agent-1 -r
-rm file_storage/agent-2 -r
+#!/bin/bash
+rm -r file_storage/agent-1 
+rm -r file_storage/agent-2 
