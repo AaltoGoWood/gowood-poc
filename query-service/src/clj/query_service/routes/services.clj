@@ -86,9 +86,9 @@
              :handler (fn [{:keys [parameters]}]
                         (let [op (get-in parameters [:path :operation])
                               cmd-body (get-in parameters [:body])]
+                          (println (format "/query op %s cmd body: %s " op cmd-body))
                           (case op
-                            "info-with-first-level-components-fake"
-                            (ok (fake-db/apply-command op cmd-body))
+                            "info-with-first-level-components-fake" (ok (fake-db/apply-command op cmd-body))
                             (ok (ogre-db/apply-command op cmd-body)))))}}]]
 
    ["/data"
@@ -118,6 +118,6 @@
       :post {:summary "Create new database"
              :handler (fn [& _]
                         (println "Seeding db")
-                        (ogre-db/init-poc-graph)
+                        (ogre-db/init-poc-graph-with-holodata)
                         (println "db seeded")
                         (ok "ok"))}}]]])
