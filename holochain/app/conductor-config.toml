@@ -12,7 +12,7 @@ test_agent = true
 
 [[dnas]]
 file = '/holochain/dist/holochain.dna.json'
-hash = 'QmdARLiFDV9MkStN97o1MXEcN559gNyiwm3Z96v2VKHgXg'
+hash = 'Qmae2r3cWatkX9G4oVPewkWEZ5Gtc8G1JYSJQD8tuV93oy'
 id = 'hc-run-dna'
 
 [[instances]]
@@ -36,7 +36,7 @@ type = 'http'
 
 [logger]
 state_dump = true
-type = 'warn'
+type = 'debug'
 
 [logger.rules]
 rules = []

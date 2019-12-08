@@ -34,18 +34,116 @@ use hdk::holochain_persistence_api::{
 
 use hdk_proc_macros::zome;
 
-// see https://developer.holochain.org/api/0.0.38-alpha14/hdk/ for info on using the hdk library
+// see https://docs.rs/holochain_core_types/0.0.38-alpha14/holochain_core_types/#modules  for info on using the hdk library
 
-// This is a sample zome that defines an entry type "MyEntry" that can be committed to the
-// agent's chain via the exposed function create_my_entry
+/* ****************************
+ *  Types                    *
+ **************************** */
 
-#[derive(Serialize, Deserialize, Debug, DefaultJson,Clone)]
+/// Asset represent an entity that can be traversed
+/// 
+/// ## Notes
+/// 
+/// - links to other assets are stored as tokens not as holochain links. The reason to this is that we did
+///   not have time to implement other kind of access control and implement proper DPKI for assets.
+#[derive(Serialize, Deserialize, Debug, DefaultJson, Clone)]
 pub struct Asset {
     r#type: String,
     id: String,
     attributes: HashMap<String, String>,
     rows: Vec<String>,
 }
+
+
+#[derive(Debug)]
+pub enum ValidationResult {
+    /// Valid and value decrypted 
+    /// Valid(asset_key)
+    Valid(Address),
+    /// Valid but this agent cannot decrypt value
+    /// ValidEncrypted(other_agent_id, token)
+    ValidEncrypted(Address, String),
+    /// Token was invalidate
+    /// Either format was wrong or signature was incorrect
+    Invalid,
+} 
+
+/* ****************************
+ *  Helpers                   *
+ **************************** */
+
+/// Verify asset token of layout ```agent_id.encrypted_asset_id.signature```
+///
+/// ## Returns
+/// 
+/// - `Valid (Address)` if token was valid and agent was able to encrypt the Address of asset.
+/// - `ValidEncrypted(Address, String)` if token was valid but agent was now able to encrypt the key. 
+///    Address is address of agent that is able to encrypt the token and fetch data.
+/// - `Invalid` is token was invalid or signature was invalid
+fn verify_token(token: &String) -> ValidationResult {
+    let parts: Vec<&str> = token.split(".").collect();
+    match &parts[..] { 
+        [sub, key, sig] => {
+            let agent_address: Address = Address::from(sub.to_string());
+            let signature = Signature::from(sig.to_string());
+            let address_and_entry = format!("{}.{}", sub, key);
+            let key_provenance = Provenance::new(agent_address.clone(), signature);
+
+            let verify_result = hdk::verify_signature(key_provenance, address_and_entry);
+            let is_signature_valid = verify_result.is_ok() && verify_result.unwrap();
+
+            let is_this_agent = &sub.to_string() == &hdk::AGENT_ADDRESS.to_string();
+            if is_signature_valid && is_this_agent {
+                let address = hdk::decrypt(key.to_string()).map(Address::from).unwrap();
+                ValidationResult::Valid(address)
+            } else if is_signature_valid && !is_this_agent {
+                ValidationResult::ValidEncrypted(agent_address, token.to_string())
+            } else {
+                ValidationResult::Invalid
+            }
+        }
+        _ => ValidationResult::Invalid
+    }
+}
+fn new_error<T>(error: &str) -> ZomeApiResult<T>  {
+    let e = ZomeApiError::Internal(error.into());
+    Err(e)
+}
+
+/// Try to unwrap JsonString from an entry of type ZomeApiResult<Some<App(AppEntryType, JsonString)>> 
+/// and then parse JsonString into type T.
+/// 
+/// ## Returns
+/// 
+/// - `Ok(T)` if entry is not correct type or JsonString cannot be parsed to T return Err.
+/// - `Err('entry not found')` if entry was ZomeApiResult::Ok(None)
+/// - `Err('entry found but not Entry::App')` if entry was not type of ZomeApiResult<Some<App(AppEntryType, JsonString)>>
+/// - `Err('entry found but but not convertible to T')` if entry of type ZomeApiResult<Some<App(AppEntryType, JsonString)>> found 
+///    but JsonString cannot be covert to T
+fn unwrap_entry_as<T: serde::de::DeserializeOwned>(entry: ZomeApiResult<Option<Entry>>) -> ZomeApiResult<T> {
+    match entry {
+        ZomeApiResult::Ok(None) => {
+            new_error("entry not found")
+        }
+        // Entry value is wrapped in App
+        ZomeApiResult::Ok(Some(Entry::App(_t, json))) => { 
+            let asset : Result<T, _> = serde_json::from_str(r#json.to_string().as_ref());
+            match asset {
+                Ok(a) => { 
+                    Ok(a) 
+                }
+                _ => new_error("entry found but but not convertible to T")
+            }
+        }
+        _ => {
+            new_error("entry found but not Entry::App")
+        }
+    }
+}
+
+/* ****************************
+ *  Define Zome               *
+ **************************** */
 
 #[zome]
 mod my_zome {
@@ -76,9 +174,18 @@ mod my_zome {
     }
 
     #[receive]
-    fn receive_callback(_from: Address, key: String) -> String {
-        let address = hdk::decrypt(key.to_string()).map(Address::from).unwrap();
-        hdk::get_entry(&address).map(|entry| JsonString::from(entry).to_string()).unwrap()
+    fn receive_callback(_from: Address, token: String) -> String {
+        match verify_token(&token) { 
+            ValidationResult::Valid(address) => {
+                let entry = hdk::get_entry(&address);
+                let result: ZomeApiResult<Asset> = unwrap_entry_as(entry);
+                JsonString::from(result).to_string()
+            }
+            _ => {
+                let error: ZomeApiResult<Asset> = new_error::<Asset>("entry not found");
+                JsonString::from(error).to_string()
+            }
+        }
     }
 
     #[zome_fn("hc_public")]
@@ -91,15 +198,13 @@ mod my_zome {
 
     #[zome_fn("hc_public")]
     fn get_value_from_key(key: String) -> ZomeApiResult<Option<Entry>> {
-        // TODO: This should take signature as parameter and validate 
-        // it before fetching result
         let address = hdk::decrypt(key).map(Address::from).unwrap();
         hdk::get_entry(&address)
     }
 
     
     #[zome_fn("hc_public")]
-    fn create_signed_key_from_value(value: Asset) -> ZomeApiResult<String> {
+    fn create_signed_token_for_value(value: Asset) -> ZomeApiResult<String> {
         // Store entry to local DHT
         let entry = Entry::App("asset".into(), value.into());
         let address = hdk::commit_entry(&entry)?;
@@ -116,39 +221,21 @@ mod my_zome {
     }
 
     #[zome_fn("hc_public")]
-    fn get_value_from_signed_key(key: String) -> ZomeApiResult<Option<Entry>> {
-        let parts: Vec<&str> = key.split(".").collect();
-        match &parts[..] { 
-            [sub, key, sig] => {
-                // Validate signature
-                let agent_address: Address = Address::from(sub.to_string());
-                let signature = Signature::from(sig.to_string());
-                let address_and_entry = format!("{}.{}", sub, key);
-                let key_provenance = Provenance::new(agent_address, signature);
-                let verify_result = hdk::verify_signature(key_provenance, address_and_entry);
-                let is_signature_valid = verify_result.is_ok() && verify_result.unwrap();
-
-                // Try to get entry if signature is valid
-                let is_this_agent = &sub.to_string() == &hdk::AGENT_ADDRESS.to_string();
-                if is_signature_valid && is_this_agent {
-                    let address = hdk::decrypt(key.to_string()).map(Address::from).unwrap();
-                    hdk::get_entry(&address)
-                } else if is_signature_valid && !is_this_agent  {
-                    let address: Address = Address::from(sub.to_string());
-                    let response_json: String = hdk::send(address, key.to_string(), 5000.into()).unwrap();
-                    let entry: Entry = serde_json::from_str(r#response_json.as_ref()).unwrap();
-                    Ok(Some(entry))
-                } else {
-                    let e = ZomeApiError::Internal("invalid signature".into());
-                    std::result::Result::Err(e)
-                }
+    fn get_value_from_signed_token(token: String) -> ZomeApiResult<Asset> {
+        match verify_token(&token) { 
+            ValidationResult::Valid(address) => {
+                let entry = hdk::get_entry(&address);
+                return unwrap_entry_as(entry);
+            }
+            ValidationResult::ValidEncrypted(other_address, token) => {
+                let response_json: String = hdk::send(other_address, token, 5000.into()).unwrap();
+                let maybe_entry : Result<Asset, _> = serde_json::from_str(r#response_json.as_ref()).unwrap();
+                maybe_entry
             }
             _ => {
                 let e = ZomeApiError::Internal("invalid key".into());
-                std::result::Result::Err(e)
+                Err(e)
             }
         }
     }
-
-
 }
