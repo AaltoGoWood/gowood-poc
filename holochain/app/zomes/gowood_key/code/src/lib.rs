@@ -76,9 +76,11 @@ pub enum ValidationResult {
 ///
 /// ## Returns
 /// 
-/// - `Valid (Address)` if token was valid and agent was able to encrypt the Address of asset.
-/// - `ValidEncrypted(Address, String)` if token was valid but agent was now able to encrypt the key. 
-///    Address is address of agent that is able to encrypt the token and fetch data.
+/// - `Valid (Address)` if token was valid and agent was able to decrypt the Address of asset.
+///    Returned is address of asset entry.
+/// - `ValidEncrypted(Address, String)` if token was valid but current agent was *not* able to 
+///    decrypt asset Address. The returned address is the address of agent that is able to decrypt 
+///    the token and fetch data.
 /// - `Invalid` is token was invalid or signature was invalid
 fn verify_token(token: &String) -> ValidationResult {
     let parts: Vec<&str> = token.split(".").collect();
@@ -115,7 +117,7 @@ fn new_error<T>(error: &str) -> ZomeApiResult<T>  {
 /// 
 /// ## Returns
 /// 
-/// - `Ok(T)` if entry is not correct type or JsonString cannot be parsed to T return Err.
+/// - `Ok(ZomeApiResult<T>)` if entry was correct type and it was possible to convert JsonString to T.
 /// - `Err('entry not found')` if entry was ZomeApiResult::Ok(None)
 /// - `Err('entry found but not Entry::App')` if entry was not type of ZomeApiResult<Some<App(AppEntryType, JsonString)>>
 /// - `Err('entry found but but not convertible to T')` if entry of type ZomeApiResult<Some<App(AppEntryType, JsonString)>> found 
@@ -159,7 +161,7 @@ mod my_zome {
     }
 
     #[entry_def]
-     fn my_entry_def() -> ValidatingEntryType {
+    fn my_entry_def() -> ValidatingEntryType {
         entry!(
             name: "asset",
             description: "this is a same entry definition",
