@@ -166,10 +166,10 @@
   (let [g (get-graph)
         holo-keys {:p123 (holo/add-asset! "plywood" "p123" {"producer" "UPM Plywood"}
                                           (holo/add-asset! "tree-trunk" "p123-1"  {"speciesOfTree" "Pine"
-                                                                          "trunkWidth" "75"
-                                                                          "timestamp" "2019-10-14T09:12:13.012Z"
-                                                                          "length" "20"
-                                                                          "coords" "25.474273614, 65.0563745"})
+                                                                                   "trunkWidth" "75"
+                                                                                   "timestamp" "2019-10-14T09:12:13.012Z"
+                                                                                   "length" "20"
+                                                                                   "coords" "25.474273614, 65.0563745"})
                                           (holo/add-asset! "tree-trunk" "p123-2" {"speciesOfTree" "Pine"
                                                                                   "trunkWidth" "60"
                                                                                   "timestamp" "2019-10-12T09:12:13.012Z"
@@ -232,10 +232,12 @@
     (let [{:keys [status] :as holochain-record} (holo/fetch-asset-id id)]
       (when-not (= :error status)
         (keywordize-keys holochain-record)))
-    row))
+    (merge row {:original_id id :original_type type})))
 
-(defn with-data-from-holochain [{:keys [rows] :as data}]
-  (assoc data :rows (map ->normal-data-row rows)))
+(defn with-data-from-holochain [{:keys [rows attributes] :as data}]
+  (-> data
+      (assoc :rows (map ->normal-data-row rows))
+      (assoc :attributes (->normal-data-row attributes))))
 
 (defn apply-command [op body]
   (let [{{id :id type :type} :from} body
