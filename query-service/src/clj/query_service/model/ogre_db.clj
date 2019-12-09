@@ -1,7 +1,7 @@
 (ns query-service.model.ogre-db
   (:require
    [clojure.edn :as edn]
-   ;;[clojure.walk :refer [keywordize-keys]]
+   [clojure.walk :refer [keywordize-keys]]
    [clojurewerkz.ogre.core :refer [open-graph traversal traverse value-map
                                    match out has in select into-seq!
                                    values as by V __] :as ogre]
@@ -220,15 +220,15 @@
     (traverse g ogre/E
       (ogre/into-vec!))))
 
+(defn holo-row? [{:keys [type]}]
+  (= type "gowood-asset"))
+
 (defn ->normal-data-row [{:keys [type id] :as row}]
   (if (holo-row? row)
     (let [{:keys [status] :as holochain-record} (holo/fetch-asset-id id)]
       (when-not (= :error status)
         (keywordize-keys holochain-record)))
     row))
-
-(defn holo-row? [{:keys [type]}]
-  (= type "gowood-asset"))
 
 (defn with-data-from-holochain [{:keys [rows] :as data}]
   (assoc data :rows (map ->normal-data-row rows)))
