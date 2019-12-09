@@ -18,6 +18,7 @@
       json/read-str))
 
 (defn parse-create-key-from-value-response [{:keys [body] :as http-response}]
+  (println body)
   (-> body
       json/read-str
       (get "result")
@@ -40,13 +41,15 @@
         200 (on-response response)
         {:http-status status :status :error :msg (format "Error HTTP response. Status %s" status)}))))
 
-(defn add-asset-id! [type id]
-  (let [conf (merge call-config {"function" "create_key_from_value"})
-        args {"value" {"type" type "id" id}}]
+(defn add-asset! 
+  [id type attrs & rows]
+  (let [conf (merge call-config {"function" "create_signed_token_for_value"})
+        args {"value" {"id" id "type" type "attributes" attrs "rows" (vec rows)}}]
+    (println args)
     (call-holochain-api url args conf parse-create-key-from-value-response)))
 
 (defn fetch-asset-id
   ;; Key = holochain entry address encrypted by the agent we are calling
   [holochain-key]
-  (let [conf (merge call-config {"function" "get_value_from_key"})]
-    (call-holochain-api url {"key" holochain-key} conf parse-asset-id)))
+  (let [conf (merge call-config {"function" "get_value_from_signed_token"})]
+    (call-holochain-api url {"key" holochain-key } conf parse-asset-id)))
