@@ -190,9 +190,9 @@
                                                                                   "coords" "25.474243614, 65.0503745"}))}]
     (-> g
         (entity "building" "746103")
-        (hc-entity "1" "gowood-asset" (:p123 holo-keys))
-        (hc-entity "2" "gowood-asset" (:p124 holo-keys))
-        (hc-entity "3" "gowood-asset" (:p125 holo-keys))
+        (hc-entity "1" "holochain-link" (:p123 holo-keys))
+        (hc-entity "2" "holochain-link" (:p124 holo-keys))
+        (hc-entity "3" "holochain-link" (:p125 holo-keys))
 
         (composed-of "building/746103" "1")
         (composed-of "building/746103" "2")
@@ -225,7 +225,7 @@
       (ogre/into-vec!))))
 
 (defn holo-row? [{:keys [type]}]
-  (= type "gowood-asset"))
+  (= type "holochain-link"))
 
 (defn ->normal-data-row [{:keys [type id] :as row}]
   (if (holo-row? row)
