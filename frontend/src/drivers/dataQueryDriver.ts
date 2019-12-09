@@ -117,6 +117,6 @@ export function dataQueryDriver(
         .flatten()
         .map((res: DataResponse) => ({
             ...res,
-            layout: layoutDirectives[res.req.type]
+            layout: layoutDirectives[res.data.attributes.original_type]
         }));
 }

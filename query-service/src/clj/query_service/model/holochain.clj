@@ -1,5 +1,6 @@
 (ns query-service.model.holochain
   (:require [org.httpkit.client :as http]
+            [clojure.edn :as edn]
             [clojure.data.json :as json]
             [clojure.walk :refer [keywordize-keys]]))
 
@@ -42,7 +43,7 @@
       {:http-status status :status :error :msg (format "Error HTTP response. Status %s" status)})))
 
 (defn add-asset!
-  [id type attrs & rows]
+  [type id attrs & rows]
   (let [conf (merge call-config {"function" "create_signed_token_for_value"})
         args {"value" {"id" id "type" type "attributes" attrs "rows" (vec rows)}}]
     (println args)
@@ -57,41 +58,64 @@
 (defn holo-row? [{:keys [type]}]
   (= type "holochain-link"))
 
-(defn ->normal-data-row [{:keys [type id] :as row}]
-  (let [{:keys [status] :as holochain-record} (fetch-asset-id id)]
+(defn- parse-coords [coordStr]
+  (let [[lng lat] (clojure.string/split coordStr #",[ ]?")]
+    (if (and lng lat)
+      {:lng (edn/read-string lng) :lat (edn/read-string lat)}
+      nil)))
+
+(declare normalize-object)
+(defn- normalize-value [k v]
+  (cond
+    (= k :coords) (parse-coords v)
+    :else v))
+
+(defn normalize-object [obj]
+  (into {} 
+        (map (fn [[k v]] [k (normalize-value k v)]) obj)))
+
+
+(defn ->normal-data-row [token]
+  (let [{:keys [status] :as holochain-record} (fetch-asset-id token)]
     (when-not (= :error status)
       (let [{original-id :id original-type :type attributes :attributes} holochain-record ]
-        (merge attributes
-               {:id id
-                :type type
-                :original-id original-id
-                :original-type original-type})))))
+        (merge (normalize-object attributes)
+               {:id token
+                :type "holochain-link"
+                :original_id original-id
+                :original_type original-type})))))
 
-;; (defn ->normal-data-attributes [{{:keys [type id] :as attrs}}]
-;;   (let [{original-id :id original-type :type attributes :attributes} holochain-record]
-;;     (merge attributes
-;;            {:id id
-;;             :type type
-;;             :original-id original-id
-;;             :original-type original-type})))
+(defn ->normal-data-attributes 
+  [id 
+   type 
+   {original-type :type original-id :id attributes :attributes }]
+  (merge attributes
+         {:id id
+          :type type
+          :original_id original-id
+          :original_type original-type}))
 
-(defn with-data-from-holochain [{:keys [rows attributes] :as data}]
+(defn with-data-from-holochain [requested-id 
+                                requested-type
+                                {:keys [rows] :as data}]
   (-> data
-      (assoc :rows (map ->normal-data-row (map (fn [hash] {:id hash :type "holochain-link"}))))
-      (assoc :attributes (->normal-data-row attributes))))
+      (assoc :id requested-id)
+      (assoc :type requested-type)
+      (assoc :rows (map ->normal-data-row rows))
+      (assoc :attributes (->normal-data-attributes
+                          requested-id
+                          requested-type
+                          data))))
 
 (defn apply-command [op body]
   (let [{{id :id type :type} :from} body
-        ;;data-raw (get-node-with-components type id)
-        ;;data (with-data-from-holochain data-raw)
-        ;;
         data-raw (fetch-asset-id id)
-        data (with-data-from-holochain data-raw)
+        data (with-data-from-holochain id type data-raw)
         found? (some? data)
-
         ]
+    (println "JEEE!")
     (println "result data: " data)
-    (println "ogre -> id: " id "; type: " type "; found " found?)
+    (println "holochain -> id: " id "; type: " type "; found " found?)
     {:req {:op op :body body}
      :result {:found found?
               :data data}
