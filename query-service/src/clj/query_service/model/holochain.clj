@@ -89,7 +89,7 @@
   [id 
    type 
    {original-type :type original-id :id attributes :attributes }]
-  (merge attributes
+  (merge (normalize-object attributes)
          {:id id
           :type type
           :original_id original-id
@@ -113,7 +113,6 @@
         data (with-data-from-holochain id type data-raw)
         found? (some? data)
         ]
-    (println "JEEE!")
     (println "result data: " data)
     (println "holochain -> id: " id "; type: " type "; found " found?)
     {:req {:op op :body body}
