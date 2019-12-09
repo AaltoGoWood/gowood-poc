@@ -1,6 +1,7 @@
 (ns query-service.model.holochain
   (:require [org.httpkit.client :as http]
-            [clojure.data.json :as json]))
+            [clojure.data.json :as json]
+            [clojure.walk :refer [keywordize-keys]]))
 
 (def url "http://localhost:8888")
 
@@ -39,7 +40,7 @@
       200 (on-response response)
       {:http-status status :status :error :msg (format "Error HTTP response. Status %s" status)})))
 
-(defn add-asset! 
+(defn add-asset!
   [id type attrs & rows]
   (let [conf (merge call-config {"function" "create_signed_token_for_value"})
         args {"value" {"id" id "type" type "attributes" attrs "rows" (vec rows)}}]
@@ -51,3 +52,35 @@
   [holochain-key]
   (let [conf (merge call-config {"function" "get_value_from_signed_token"})]
     (call-holochain-api url {"token" holochain-key} conf parse-asset-id)))
+
+
+(defn holo-row? [{:keys [type]}]
+  (= type "gowood-asset"))
+
+(defn ->normal-data-row [{:keys [type id] :as row}]
+  (if (holo-row? row)
+    (let [{:keys [status] :as holochain-record} (fetch-asset-id id)]
+      (when-not (= :error status)
+        (keywordize-keys holochain-record)))
+    (merge row {:original_id id :original_type type})))
+
+(defn with-data-from-holochain [{:keys [rows attributes] :as data}]
+  (-> data
+      (assoc :rows (map ->normal-data-row rows))
+      (assoc :attributes (->normal-data-row attributes))))
+
+(defn apply-command [op body]
+  (let [{{id :id type :type} :from} body
+        ;;data-raw (get-node-with-components type id)
+        ;;data (with-data-from-holochain data-raw)
+        ;;found? (some? data)
+        data-raw nil
+        data nil
+        found? nil
+        ]
+    (println "result data: " data)
+    (println "ogre -> id: " id "; type: " type "; found " found?)
+    {:req {:op op :body body}
+     :result {:found found?
+              :data data}
+     :external-nodes []}))

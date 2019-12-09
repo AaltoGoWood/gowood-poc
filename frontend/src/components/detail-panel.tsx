@@ -197,8 +197,8 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
                                     });
                                 }}
                             >
-                                <td>{row.type}</td>
-                                <td>{row.id}</td>
+                                <td>{row.original_type}</td>
+                                <td>{row.original_id}</td>
                                 <td>{row.producer}</td>
                             </tr>
                         );
@@ -355,8 +355,8 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                                     props.dispatchFn(traverseCmd);
                                 }}
                             >
-                                <td>{row.type}</td>
-                                <td>{row.id}</td>
+                                <td>{row.original_type}</td>
+                                <td>{row.original_id}</td>
                                 <td>{JSON.stringify(row.coords)}</td>
                             </tr>
                         );
@@ -400,8 +400,8 @@ function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
             });
         case 'asset-details':
             return renderAssetDetails({
-                id: props.leafDetails.req.id,
-                type: props.leafDetails.req.type,
+                id: props.leafDetails.data.attributes.original_id,
+                type: props.leafDetails.data.attributes.original_type,
                 parentTraversePath: props.leafDetails.req.traversePath,
                 rows: props.leafDetails.data.rows,
                 attributes: props.leafDetails.data.attributes,
