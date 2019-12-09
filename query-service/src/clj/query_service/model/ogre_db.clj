@@ -175,13 +175,13 @@
                                                                                   "timestamp" "2019-10-12T09:12:13.012Z"
                                                                                   "length" "30"
                                                                                   "coords" "25.474293614, 65.0543745"}))
-                   :p124 (holo/add-asset! "plywood" "p124" {}
+                   :p124 (holo/add-asset! "plywood" "p124" {"producer" "UPM Plywood"}
                                           (holo/add-asset! "tree-trunk" "p124-1" {"speciesOfTree" "Pine"
                                                                                   "trunkWidth" "60"
                                                                                   "timestamp" "2019-10-11T09:10:13.012Z"
                                                                                   "length" "25"
                                                                                   "coords" "25.474243614, 65.0503745"}))
-                   :p125 (holo/add-asset! "plywood" "p125" {}
+                   :p125 (holo/add-asset! "plywood" "p125" {"producer" "UPM Plywood"}
                                           (holo/add-asset! "tree-trunk" "p125-1" {"speciesOfTree" "Pine"
                                                                                   "trunkWidth" "60"
                                                                                   "timestamp" "2019-10-11T09:10:13.012Z"
