@@ -25,7 +25,7 @@
 (defn- parse-coords [coordStr]
   (let [[lng lat] (clojure.string/split coordStr #",[ ]?")]
     (if (and lng lat)
-      {:lng (edn/read-string lng) :lat (edn/read-string lat) }
+      {:lng (edn/read-string lng) :lat (edn/read-string lat)}
       nil)))
 
 (declare normalize-object)
@@ -84,7 +84,7 @@
       (#(reduce (fn [acc, [k, v]] (ogre/property acc k v))
                 %
                 (or props {})))
-       (ogre/as (str type "/" id))))
+      (ogre/as (str type "/" id))))
 
 (defn- hc-entity [acc alias type id & [props]]
   (-> acc
@@ -115,17 +115,17 @@
                                         "trunkWidth" 75
                                         "timestamp" "2019-10-14T09:12:13.012Z"
                                         "length" 20
-                                        "coords" "25.474273614, 65.0563745" })
+                                        "coords" "25.474273614, 65.0563745"})
         (entity "tree-trunk" "p123-2" {"speciesOfTree" "Pine"
                                        "trunkWidth" 60
                                        "timestamp" "2019-10-12T09:12:13.012Z"
                                        "length" 30
                                        "coords" "25.474293614, 65.0543745"})
         (entity "tree-trunk" "p124-1" {"speciesOfTree" "Pine"
-                                        "trunkWidth" 60
-                                        "timestamp" "2019-10-11T09:10:13.012Z"
-                                        "length" 25
-                                        "coords" "25.474243614, 65.0503745"})
+                                       "trunkWidth" 60
+                                       "timestamp" "2019-10-11T09:10:13.012Z"
+                                       "length" 25
+                                       "coords" "25.474243614, 65.0503745"})
         (entity "tree-trunk" "p125-1" {"speciesOfTree" "Pine"
                                        "trunkWidth" 60
                                        "timestamp" "2019-10-11T09:10:13.012Z"
@@ -146,7 +146,7 @@
   [{:type "entity" :node-type "building" :node-id "A1"}
    {:type "entity" :node-type "building" :node-id "A2"}
    {:type "entity" :node-type "plywood" :node-id "p1" :attributes {"producer" "UPM Plywood"}}
-   {:type "edge" :from "building/A1" :to "plywood/p1"}]  )
+   {:type "edge" :from "building/A1" :to "plywood/p1"}])
 
 (defmulti add-item (fn [_ {:keys [type] :as item}] type))
 
@@ -174,8 +174,7 @@
                                                                                   "trunkWidth" "60"
                                                                                   "timestamp" "2019-10-12T09:12:13.012Z"
                                                                                   "length" "30"
-                                                                                  "coords" "25.474293614, 65.0543745"})
-                                          )
+                                                                                  "coords" "25.474293614, 65.0543745"}))
                    :p124 (holo/add-asset! "plywood" "p124" {}
                                           (holo/add-asset! "tree-trunk" "p124-1" {"speciesOfTree" "Pine"
                                                                                   "trunkWidth" "60"
@@ -197,14 +196,13 @@
         (composed-of "building/746103" "1")
         (composed-of "building/746103" "2")
         (composed-of "building/746103" "3")
-
         (.next))))
 
 (defn get-nodes []
   (let [g (get-graph)]
     (traverse g V
-      (ogre/value-map)
-      (ogre/into-vec!))))
+              (ogre/value-map)
+              (ogre/into-vec!))))
 
 (defn get-node-with-components [node-type node-id]
   (let [g (get-graph)]
@@ -222,22 +220,19 @@
 (defn get-edges []
   (let [g (get-graph)]
     (traverse g ogre/E
-      (ogre/into-vec!))))
-
-(defn holo-row? [{:keys [type]}]
-  (= type "holochain-link"))
+              (ogre/into-vec!))))
 
 (defn ->normal-data-row [{:keys [type id] :as row}]
-  (if (holo-row? row)
-    (let [{:keys [status] :as holochain-record} (holo/fetch-asset-id id)]
-      (when-not (= :error status)
-        (keywordize-keys holochain-record)))
+  (println "->normal-data-row" row)
+  (if (= type "holochain-link")
+    (holo/->normal-data-row id)
     (merge row {:original_id id :original_type type})))
-
+  
 (defn with-data-from-holochain [{:keys [rows attributes] :as data}]
-  (-> data
-      (assoc :rows (map ->normal-data-row rows))
-      (assoc :attributes (->normal-data-row attributes))))
+  (when data
+    (-> data
+        (assoc :rows (map ->normal-data-row rows))
+        (assoc :attributes (->normal-data-row attributes)))))
 
 (defn apply-command [op body]
   (let [{{id :id type :type} :from} body
