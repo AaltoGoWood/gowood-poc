@@ -1,9 +1,14 @@
 {
-  "name": "Holochain App Name",
-  "description": "A Holochain app",
+  "name": "GoWood hApp PoC",
+  "description": "Holochain hApp for GoWood Prk",
   "authors": [
     {
-      "identifier": "Author Name <author@name.com>",
+      "identifier": "Ari-Pekka Lappi <ari-pekka.lappi@aalto.fi>",
+      "public_key_source": "",
+      "signature": ""
+    }, 
+    {
+      "identifier": "Tero Kadenius <tero.kadenius@aalto.fi>",
       "public_key_source": "",
       "signature": ""
     }

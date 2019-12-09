@@ -1,24 +1,14 @@
 const { Orchestrator, Config } = require('@holochain/tryorama')
 
-const dnaHello = Config.dna(__dirname + '/../dist/holochain.dna.json', 'hello');
-const dneFile = require('../dist/holochain.dna.json')
- 
+const dnaGowoodKey = Config.dna(__dirname + '/../dist/holochain.dna.json', 'gowood_key');
+
 // Set up a Conductor configuration using the handy `Conductor.config` helper.
 // Read the docs for more on configuration.
 const mainConfig = Config.gen(
   {
-    hello: dnaHello,  // agent_id="hello", instance_id="hello", dna=dnaHello
+    gowood_key: dnaGowoodKey,  // agent_id="plywood", instance_id="plywood", dna=dnaPlywood
   },
-  {
-    // specify a bridge from chat to blog
-    // bridges: [Config.bridge('bridge-name', 'chat', 'blog')],
-    // use a sim2h network (see conductor config options for all valid network types)
-    // network: {
-    //   type: 'sim2h',
-    //   sim2h_url: 'ws://localhost:9000',
-    // },
-    // etc., any other valid conductor config items can go here
-  }
+  { logger: { 'type': 'warn' } }
 )
 
 process.on('unhandledRejection', error => {
@@ -28,24 +18,27 @@ process.on('unhandledRejection', error => {
 
 const orchestrator = new Orchestrator()
 
-orchestrator.registerScenario("description of example test", async (s, t) => {
+orchestrator.registerScenario("test_1", async (s, t) => {
 
-  const { hello } = await s.players({hello: mainConfig })
-  await hello.spawn()
-  // Make a call to a Zome function
-  // indicating the function, and passing it an input
-  const addr = await hello.call("hello", "hello", "create_my_entry", {"entry" : {"content":"sample content"}})
+  const { gowood_key } = await s.players({gowood_key: mainConfig });
+  await gowood_key.spawn()
+  const addr = await gowood_key.call("gowood_key", 
+     "gowood_key", 
+     "create_key_from_value", 
+      { "value" : { "type":"plywood", "id": "p123", "attributes": {}, "rows": [] }});
 
-  // Wait for all network activity to
+
   await s.consistency()
 
-  const result = await hello.call("hello", "hello", "get_my_entry", {"address": addr.Ok})
+  const result = await gowood_key.call("gowood_key", "gowood_key", "get_value_from_key", {"key": addr.Ok})
 
-  // check for equality of the actual and expected results
-  t.deepEqual(result, { Ok: { App: [ 'my_entry', '{"content":"sample content"}' ] } })
+  t.deepEqual(result, { Ok: { App: [ 'asset', '{"type":"plywood","id":"p123","attributes":{},"rows":[]}' ] } })
 })
 
 orchestrator.run()
+  .catch(err => {
+    console.error('>>> Test runner failed', JSON.stringify(err))
+  })
   .then(res => {
-    console.log(res);
+    console.log('Test result', res);
   });

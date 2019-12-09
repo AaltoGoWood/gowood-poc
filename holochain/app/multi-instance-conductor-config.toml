@@ -1,0 +1,67 @@
+bridges = []
+persistence_dir = ''
+ui_bundles = []
+ui_interfaces = []
+
+[[agents]]
+id = 'agent1'
+keystore_file = '/holochain/keystore_files/HcScJMhPXXAj7u6wopsSE5vCeQ9R3rtsycj36VIHdVKnomisD6RZgvxfyzdph8a'
+name = 'test_agent_1'
+public_address = 'HcScJMhPXXAj7u6wopsSE5vCeQ9R3rtsycj36VIHdVKnomisD6RZgvxfyzdph8a'
+
+[[agents]]
+id = 'agent2'
+keystore_file = '/holochain/keystore_files/HcScIqSVHnZue967e49eMm3RJ985scP5jrGwMpUaH7876nffVyUaNuybcqxbm7a'
+name = 'test_agent_2'
+public_address = 'HcScIqSVHnZue967e49eMm3RJ985scP5jrGwMpUaH7876nffVyUaNuybcqxbm7a'
+
+[[dnas]]
+file = '/holochain/dist/holochain.dna.json'
+hash = 'QmfYF59jgzFdtzy2bheXoq9tpt4jf8vRvqYuMfBqqy8fav'
+id = 'hc-run-dna'
+
+[[instances]]
+agent = 'agent1'
+dna = 'hc-run-dna'
+id = 'test-instance-1'
+
+[instances.storage]
+type = 'file'
+path = 'file_storage/agent-1'
+
+[[instances]]
+agent = 'agent2'
+dna = 'hc-run-dna'
+id = 'test-instance-2'
+
+[instances.storage]
+type = 'file'
+path = 'file_storage/agent-2'
+
+[[interfaces]]
+admin = true
+id = 'http-interface'
+
+[[interfaces.instances]]
+id = 'test-instance-1'
+
+[[interfaces.instances]]
+id = 'test-instance-2'
+
+[interfaces.driver]
+port = 8888
+type = 'http'
+
+[logger]
+state_dump = true
+type = 'warn'
+
+[logger.rules]
+rules = []
+
+[passphrase_service]
+type = 'cmd'
+
+[signals]
+consistency = false
+trace = false

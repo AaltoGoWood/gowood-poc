@@ -3,3 +3,6 @@ node_modules/
 target/
 .hc
 .cargo
+# Multi instance config should save data into this folder
+# Root folder is neede, but we dont want to store agent databases
+file_storage/**/
