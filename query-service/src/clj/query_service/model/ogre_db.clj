@@ -86,6 +86,17 @@
                 (or props {})))
        (ogre/as (str type "/" id))))
 
+(defn- hc-entity [acc alias type id & [props]]
+  (-> acc
+      (.addV type)
+      (ogre/property "node-id" id)
+      (ogre/property "node-type" type)
+      (#(reduce (fn [acc, [k, v]] (ogre/property acc k v))
+                %
+                (or props {})))
+      (ogre/as (str alias))))
+
+
 (defn- composed-of [acc fromNode toNode]
   (-> acc
       (.addE "composed-of")
@@ -153,47 +164,40 @@
 
 (defn init-poc-graph-with-holodata []
   (let [g (get-graph)
-        holo-keys {:p123 (holo/add-asset-id! "plywood" "p123")
-                   :p124 (holo/add-asset-id! "plywood" "p124")
-                   :p125 (holo/add-asset-id! "plywood" "p125")}]
+        holo-keys {:p123 (holo/add-asset! "plywood" "p123" {"producer" "UPM Plywood"}
+                                          (holo/add-asset! "tree-trunk" "p123-1"  {"speciesOfTree" "Pine"
+                                                                          "trunkWidth" "75"
+                                                                          "timestamp" "2019-10-14T09:12:13.012Z"
+                                                                          "length" "20"
+                                                                          "coords" "25.474273614, 65.0563745"})
+                                          (holo/add-asset! "tree-trunk" "p123-2" {"speciesOfTree" "Pine"
+                                                                                  "trunkWidth" "60"
+                                                                                  "timestamp" "2019-10-12T09:12:13.012Z"
+                                                                                  "length" "30"
+                                                                                  "coords" "25.474293614, 65.0543745"})
+                                          )
+                   :p124 (holo/add-asset! "plywood" "p124" {}
+                                          (holo/add-asset! "tree-trunk" "p124-1" {"speciesOfTree" "Pine"
+                                                                                  "trunkWidth" "60"
+                                                                                  "timestamp" "2019-10-11T09:10:13.012Z"
+                                                                                  "length" "25"
+                                                                                  "coords" "25.474243614, 65.0503745"}))
+                   :p125 (holo/add-asset! "plywood" "p125" {}
+                                          (holo/add-asset! "tree-trunk" "p125-1" {"speciesOfTree" "Pine"
+                                                                                  "trunkWidth" "60"
+                                                                                  "timestamp" "2019-10-11T09:10:13.012Z"
+                                                                                  "length" "25"
+                                                                                  "coords" "25.474243614, 65.0503745"}))}]
     (-> g
         (entity "building" "746103")
-        (entity "plywood" "p123" {"producer" "UPM Plywood"})
-        (entity "plywood" "p124" {"producer" "UPM Plywood"})
-        (entity "plywood" "p125" {"producer" "UPM Plywood"})
+        (hc-entity "1" "gowood-asset" (:p123 holo-keys))
+        (hc-entity "2" "gowood-asset" (:p124 holo-keys))
+        (hc-entity "3" "gowood-asset" (:p125 holo-keys))
 
-        (entity "gowood-asset" (:p123 holo-keys))
-        (entity "gowood-asset" (:p124 holo-keys))
-        (entity "gowood-asset" (:p125 holo-keys))
+        (composed-of "building/746103" "1")
+        (composed-of "building/746103" "2")
+        (composed-of "building/746103" "3")
 
-        (entity "tree-trunk" "p123-1"  {"speciesOfTree" "Pine"
-                                        "trunkWidth" 75
-                                        "timestamp" "2019-10-14T09:12:13.012Z"
-                                        "length" 20
-                                        "coords" "25.474273614, 65.0563745" })
-        (entity "tree-trunk" "p123-2" {"speciesOfTree" "Pine"
-                                       "trunkWidth" 60
-                                       "timestamp" "2019-10-12T09:12:13.012Z"
-                                       "length" 30
-                                       "coords" "25.474293614, 65.0543745"})
-        (entity "tree-trunk" "p124-1" {"speciesOfTree" "Pine"
-                                        "trunkWidth" 60
-                                        "timestamp" "2019-10-11T09:10:13.012Z"
-                                        "length" 25
-                                        "coords" "25.474243614, 65.0503745"})
-        (entity "tree-trunk" "p125-1" {"speciesOfTree" "Pine"
-                                       "trunkWidth" 60
-                                       "timestamp" "2019-10-11T09:10:13.012Z"
-                                       "length" 25
-                                       "coords" "25.484243614, 65.0503645"})
-
-        (composed-of "building/746103" (str "gowood-asset/" (:p123 holo-keys)))
-        (composed-of "building/746103" (str "gowood-asset/" (:p124 holo-keys)))
-        (composed-of "building/746103" (str "gowood-asset/" (:p125 holo-keys)))
-
-        (composed-of "plywood/p123" "tree-trunk/p123-1")
-        (composed-of "plywood/p123" "tree-trunk/p123-2")
-        (composed-of "plywood/p124" "tree-trunk/p124-1")
         (.next))))
 
 (defn get-nodes []
