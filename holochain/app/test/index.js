@@ -8,7 +8,7 @@ const mainConfig = Config.gen(
   {
     gowood_key: dnaGowoodKey,  // agent_id="plywood", instance_id="plywood", dna=dnaPlywood
   },
-  { logger: { 'type': 'debug' } }
+  { logger: { 'type': 'warn' } }
 )
 
 process.on('unhandledRejection', error => {
@@ -25,14 +25,14 @@ orchestrator.registerScenario("test_1", async (s, t) => {
   const addr = await gowood_key.call("gowood_key", 
      "gowood_key", 
      "create_key_from_value", 
-      { "value" : { "type":"plywood", "id": "p123" }})
+      { "value" : { "type":"plywood", "id": "p123", "attributes": {}, "rows": [] }});
 
 
   await s.consistency()
 
   const result = await gowood_key.call("gowood_key", "gowood_key", "get_value_from_key", {"key": addr.Ok})
 
-  t.deepEqual(result, { Ok: { App: [ 'assets_identity', '{"type":"plywood","id":"p123"}' ] } })
+  t.deepEqual(result, { Ok: { App: [ 'asset', '{"type":"plywood","id":"p123","attributes":{},"rows":[]}' ] } })
 })
 
 orchestrator.run()
