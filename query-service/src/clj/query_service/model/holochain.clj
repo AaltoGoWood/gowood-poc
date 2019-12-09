@@ -13,7 +13,8 @@
       json/read-str
       (get "result")
       json/read-str
-      (get "Ok")))
+      (get "Ok")
+      keywordize-keys))
 
 (defn parse-create-key-from-value-response [{:keys [body] :as http-response}]
   (println body)
@@ -53,30 +54,41 @@
   (let [conf (merge call-config {"function" "get_value_from_signed_token"})]
     (call-holochain-api url {"token" holochain-key} conf parse-asset-id)))
 
-
 (defn holo-row? [{:keys [type]}]
-  (= type "gowood-asset"))
+  (= type "holochain-link"))
 
 (defn ->normal-data-row [{:keys [type id] :as row}]
-  (if (holo-row? row)
-    (let [{:keys [status] :as holochain-record} (fetch-asset-id id)]
-      (when-not (= :error status)
-        (keywordize-keys holochain-record)))
-    (merge row {:original_id id :original_type type})))
+  (let [{:keys [status] :as holochain-record} (fetch-asset-id id)]
+    (when-not (= :error status)
+      (let [{original-id :id original-type :type attributes :attributes} holochain-record ]
+        (merge attributes
+               {:id id
+                :type type
+                :original-id original-id
+                :original-type original-type})))))
+
+;; (defn ->normal-data-attributes [{{:keys [type id] :as attrs}}]
+;;   (let [{original-id :id original-type :type attributes :attributes} holochain-record]
+;;     (merge attributes
+;;            {:id id
+;;             :type type
+;;             :original-id original-id
+;;             :original-type original-type})))
 
 (defn with-data-from-holochain [{:keys [rows attributes] :as data}]
   (-> data
-      (assoc :rows (map ->normal-data-row rows))
+      (assoc :rows (map ->normal-data-row (map (fn [hash] {:id hash :type "holochain-link"}))))
       (assoc :attributes (->normal-data-row attributes))))
 
 (defn apply-command [op body]
   (let [{{id :id type :type} :from} body
         ;;data-raw (get-node-with-components type id)
         ;;data (with-data-from-holochain data-raw)
-        ;;found? (some? data)
-        data-raw nil
-        data nil
-        found? nil
+        ;;
+        data-raw (fetch-asset-id id)
+        data (with-data-from-holochain data-raw)
+        found? (some? data)
+
         ]
     (println "result data: " data)
     (println "ogre -> id: " id "; type: " type "; found " found?)
