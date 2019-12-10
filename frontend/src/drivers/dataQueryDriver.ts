@@ -40,7 +40,8 @@ const valueFormat: {
 
 const DefaultAttributesLayout = {
     attributeTagFn: (field: string) => '',
-    shouldShowField: (field: string) => !['id', 'type'].some(f => field === f),
+    shouldShowField: (field: string) =>
+        !['id', 'type', 'original_id', 'original_type'].some(f => field === f),
     formatLabel: (field: string) => labelTranslate[field] || field,
     formatValue: (field: string, value: any) =>
         (valueFormat[field] || valueFormat.__identity__)(value)
@@ -116,6 +117,6 @@ export function dataQueryDriver(
         .flatten()
         .map((res: DataResponse) => ({
             ...res,
-            layout: layoutDirectives[res.req.type]
+            layout: layoutDirectives[res.data.attributes.original_type]
         }));
 }

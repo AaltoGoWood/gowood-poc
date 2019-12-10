@@ -11,7 +11,8 @@
    [query-service.middleware.exception :as exception]
    [query-service.model.fake-db :as fake-db]
    [query-service.model.ogre-db :as ogre-db]
-   [ring.util.http-response :refer :all]
+   [query-service.model.holochain :as holochain]
+   [ring.util.http-response :as res]
    [clojure.spec.alpha :as s]
    [ring.util.response :refer [redirect]]
    [clojure.java.io :as io]))
@@ -37,6 +38,23 @@
 
 (defn root-route []
   ["/" {:get (constantly (redirect "/api/api-docs/" 302))}])
+
+(defn apply-command [op cmd-body ok-fn bad-request-fn]
+  (let [{{type :type} :from} cmd-body
+        datasource-type (case op
+                          "info-with-first-level-components-fake" :mock
+                          :real)
+        root-backend (case type
+                       "holochain-link" :holochain
+                       :graph-db)
+        node-data (case [datasource-type root-backend]
+                    [:mock :graph-db] (fake-db/apply-command op cmd-body)
+                    [:mock :holochain] (fake-db/apply-command op cmd-body)
+                    [:real :graph-db] (ogre-db/apply-command op cmd-body)
+                    [:real :holochain] (holochain/apply-command op cmd-body))]
+    
+    (cond (= node-data :invalid-query) (bad-request-fn)
+          :else (ok-fn node-data))))
 
 (defn service-routes []
   ["/api"
@@ -74,7 +92,7 @@
              :config {:validator-url nil}})}]]
 
    ["/ping"
-    {:get (constantly (ok {:message "pong"}))}]
+    {:get (constantly (res/ok {:message "pong"}))}]
 
    ["/query"
     {:swagger {:tags ["query-api"]}}
@@ -86,10 +104,8 @@
              :handler (fn [{:keys [parameters]}]
                         (let [op (get-in parameters [:path :operation])
                               cmd-body (get-in parameters [:body])]
-                          (case op
-                            "info-with-first-level-components-fake"
-                            (ok (fake-db/apply-command op cmd-body))
-                            (ok (ogre-db/apply-command op cmd-body)))))}}]]
+                          (println (format "/query op %s cmd body: %s " op cmd-body))
+                          (apply-command op cmd-body res/ok res/bad-request)))}}]]
 
    ["/data"
     {:swagger {:tags ["data"]}}
@@ -104,7 +120,7 @@
                           (println "data to be added to the db: " entities)
                           (ogre-db/add-data data))
                         (println "Data added to the db")
-                        (ok "ok"))}}]]
+                        (res/ok "ok"))}}]]
 
    ["/db"
     {:swagger {:tags ["POC admin"]}}
@@ -114,10 +130,11 @@
                           (println "Removing db")
                           (ogre-db/reset-graph)
                           (println "db removed")
-                          (ok "ok"))}
+                          (res/ok "ok"))}
       :post {:summary "Create new database"
              :handler (fn [& _]
                         (println "Seeding db")
-                        (ogre-db/init-poc-graph)
+                        (ogre-db/init-poc-graph-with-holodata)
                         (println "db seeded")
-                        (ok "ok"))}}]]])
+                        (res/ok "ok"))}}]]])
+
