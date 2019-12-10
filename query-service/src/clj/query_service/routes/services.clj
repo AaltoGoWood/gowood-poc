@@ -48,11 +48,11 @@
                        "holochain-link" :holochain
                        :graph-db)
         node-data (case [datasource-type root-backend]
-                    [:fake :graph-db] (fake-db/apply-command op cmd-body)
-                    [:fake :holochain] (fake-db/apply-command op cmd-body)
+                    [:mock :graph-db] (fake-db/apply-command op cmd-body)
+                    [:mock :holochain] (fake-db/apply-command op cmd-body)
                     [:real :graph-db] (ogre-db/apply-command op cmd-body)
                     [:real :holochain] (holochain/apply-command op cmd-body))]
-    (println "foobar")
+    
     (cond (= node-data :invalid-query) (bad-request-fn)
           :else (ok-fn node-data))))
 
