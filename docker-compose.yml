@@ -2,6 +2,16 @@ version: "3"
 
 services:
 
+  query-service:
+    image: clojure:openjdk-14-lein
+    container_name: query-service-container
+    ports: ["3000:3000"]
+    command: tail -f /dev/null
+    working_dir: /app
+    command: lein with-profile test run
+    volumes:
+      - query-service-app:/app
+
   janusgraph:
     image: janusgraph/janusgraph:latest
     container_name: janusgraph-default
@@ -24,3 +34,9 @@ volumes:
       o: bind
       type: none
       device: .$PWD/holochain/app
+  query-service-app:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: .$PWD/query-service
