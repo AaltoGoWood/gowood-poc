@@ -34,7 +34,8 @@
                  [ring-cors "0.1.13"]
                  [selmer "1.12.17"]
                  [http-kit "2.3.0"]
-                 [org.clojure/data.json "0.2.6"]]
+                 [org.clojure/data.json "0.2.6"]
+                 [yogthos/config "1.1.7"]]
 
   :min-lein-version "2.0.0"
 
