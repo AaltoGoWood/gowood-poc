@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+
+  janusgraph:
+    image: janusgraph/janusgraph:latest
+    container_name: janusgraph-default
+    ports: ["8182:8182"]
+
+  holochain:
+    build: ./holochain
+    ports: ["8888:8888"]
+    command: bash -c ". /home/docker/.nix-profile/etc/profile.d/nix.sh \
+                         && nix-shell http://holochain.love --command \
+                            \"hc package && holochain -c in-memory-instance-conductor-config.toml\""
+    volumes:
+      - holochain-app:/holochain
+
+volumes:
+  janusgraph-default-data:
+  holochain-app:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: .$PWD/holochain/app
