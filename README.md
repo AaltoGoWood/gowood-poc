@@ -182,6 +182,7 @@ You can use also swagger UI:
 
 http://localhost:3000/api/api-docs/index.html#!/POC32admin/post_api_db_janus_graph
 
+Click the button "Try it out" in the green box under the heading: POST /api/db/janusgraph
 
 
 # Developing the app
