@@ -2,6 +2,13 @@ version: "3"
 
 services:
 
+  frontend:
+    build: ./frontend
+    container_name: frontend_container
+    working_dir: /app
+    ports: ["8080:8080"]
+    command: bash -c "npm install && npm run start-test"
+
   query-service:
     image: clojure:openjdk-14-lein
     container_name: query-service-container
