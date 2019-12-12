@@ -26,6 +26,7 @@ services:
 
   holochain:
     build: ./holochain
+    container_name: holochain-container
     ports: ["8888:8888"]
     command: bash -c ". /home/docker/.nix-profile/etc/profile.d/nix.sh \
                          && nix-shell http://holochain.love --command \
