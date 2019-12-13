@@ -1,3 +1,4 @@
+import { DataResponse } from './dataQueryDriver';
 import { Stream } from 'xstream';
 import {
     VisualizationViewType,
@@ -112,11 +113,30 @@ async function handleRequest(req: DataRequest): Promise<DataResponse> {
 export function dataQueryDriver(
     dataRequest$: Stream<DataRequest>
 ): Stream<DataResponse> {
-    return dataRequest$
+    const outStream = dataRequest$
         .map((req: DataRequest) => Stream.fromPromise(handleRequest(req)))
         .flatten()
         .map((res: DataResponse) => ({
             ...res,
             layout: layoutDirectives[res.data.attributes.original_type]
         }));
+
+    eventDispatcher(outStream);
+    return outStream;
+}
+
+/// Data Event dispatcher
+function dispatchBuildingEvent(eventData?: DataResponse): void {
+    const event = new CustomEvent<DataResponse>('data-event', {
+        detail: eventData
+    });
+    document.body.dispatchEvent(event);
+}
+
+function eventDispatcher(inStream$: Stream<DataResponse>): void {
+    inStream$.addListener({
+        next: (res: DataResponse) => {
+            dispatchBuildingEvent(res);
+        }
+    });
 }

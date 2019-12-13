@@ -26,6 +26,8 @@ export type Command<T = any> = {
 export interface QueryEntity {
     id: string;
     type: string;
+    original_id?: string;
+    original_type?: string;
     traversePath: QueryEntity[];
     visualization?: {
         coords?: any;
