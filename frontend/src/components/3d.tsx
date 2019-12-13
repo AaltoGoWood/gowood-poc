@@ -13,8 +13,9 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { BuildingEventData } from './../interfaces';
+import { BuildingEventData, QueryEntity } from './../interfaces';
 import { curry, find, propEq } from 'ramda';
+import { DataResponse } from '../drivers/dataQueryDriver';
 
 type PlywoodHandler = (plywoodSheet?: Object3D) => void;
 
@@ -44,8 +45,14 @@ function getPlywoodSheetWithId(
     plywoodMeshes: Object3D[],
     plywoodId: string
 ): Object3D | undefined {
+    const plywoodIdAlias: string | undefined =
+        entityQueryMapReverseIndex[plywoodId];
+
     return find(
-        (plywoodMesh: Object3D) => plywoodMesh.userData.id === plywoodId
+        (plywoodMesh: Object3D) =>
+            plywoodMesh.userData.id === plywoodId ||
+            (plywoodIdAlias !== undefined &&
+                plywoodMesh.userData.id === plywoodIdAlias)
     )(plywoodMeshes);
 }
 
@@ -169,14 +176,15 @@ function onMouse(
 }
 
 function dispatchPlywoodClicked(plywoodMesh: Object3D): void {
-    const plywoodId: String = plywoodMesh.userData.id;
+    const plywoodId: string = plywoodMesh.userData.id;
     if (plywoodId) {
+        const data = entityQueryMap[plywoodId] || {
+            type: 'plywood',
+            id: plywoodId
+        };
         const eventData: BuildingEventData = {
             type: 'building-clicked',
-            data: {
-                type: 'plywood',
-                id: plywoodId
-            }
+            data
         };
         dispatchBuildingEvent(eventData);
     }
@@ -191,14 +199,15 @@ function dispatchPlywoodHoverOff(): void {
 }
 
 function dispatchPlywoodHover(plywoodMesh: Object3D): void {
-    const plywoodId: String = plywoodMesh.userData.id;
+    const plywoodId: string = plywoodMesh.userData.id;
     if (plywoodId) {
+        const data = entityQueryMap[plywoodId] || {
+            type: 'plywood',
+            id: plywoodId
+        };
         const eventData: BuildingEventData = {
             type: 'mouse-over-3d-object',
-            data: {
-                type: 'plywood',
-                id: plywoodId
-            }
+            data
         };
         dispatchBuildingEvent(eventData);
     }
@@ -217,6 +226,42 @@ function hilightPlywoodSheet(plywoodMesh: Object3D): void {
 function deHilightPlywoodSheets(plywoodMeshes: Object3D[]): void {
     plywoodMeshes.forEach(sheet => setOpacity(sheet, 0.7));
 }
+
+const entityQueryMap: { [originalEntityId: string]: QueryEntity } = {};
+const entityQueryMapReverseIndex: { [entityId: string]: string } = {};
+document.body.addEventListener('data-event', (e: CustomEvent<DataResponse>) => {
+    const type = e.detail.req.type;
+    const res: DataResponse = e.detail;
+    switch (type) {
+        case 'building': {
+            console.log('binding data to entityQueryMap');
+            // rows should contain plywood sheets
+            (res.data.rows || [])
+                .filter((r: any) => r.original_type === 'plywood')
+                .forEach((row: any) => {
+                    entityQueryMap[row.original_id] = {
+                        id: row.id,
+                        type: row.type,
+                        original_id: row.original_id,
+                        original_type: row.original_type,
+                        traversePath: [
+                            ...res.req.traversePath,
+                            {
+                                id: row.id,
+                                type: row.type,
+                                traversePath: res.req.traversePath
+                            }
+                        ]
+                    };
+                    entityQueryMapReverseIndex[row.id] = row.original_id;
+                });
+            console.log('updated entityQueryMap', entityQueryMap);
+        }
+        default: {
+            break;
+        }
+    }
+});
 
 document.body.addEventListener(
     'building-event',

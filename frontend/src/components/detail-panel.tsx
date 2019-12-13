@@ -212,6 +212,8 @@ const renderBuildingDetails = (props: RenderBuildingDetailsProps) => {
 interface RenderAssetDetailsProps {
     id: string;
     type: string;
+    original_id: string;
+    original_type: string;
     parentTraversePath: QueryEntity[];
     attributes: any;
     rows: any[];
@@ -228,7 +230,7 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                     dispatchFn: props.dispatchFn
                 })}
                 <h3 id="data-focus-title">
-                    {props.type} (id: {props.id})
+                    {props.original_type} (id: {props.original_id})
                 </h3>
                 <div id="detail-actions">
                     {[props.layout.commands.showOrigins]
@@ -246,11 +248,18 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                                             data: {
                                                 id: row.id,
                                                 type: row.type,
+                                                original_id: props.original_id,
+                                                original_type:
+                                                    props.original_type,
                                                 traversePath: [
                                                     ...props.parentTraversePath,
                                                     {
                                                         id: props.id,
                                                         type: props.type,
+                                                        original_id:
+                                                            props.original_id,
+                                                        original_type:
+                                                            props.original_type,
                                                         traversePath:
                                                             props.parentTraversePath
                                                     }
@@ -282,7 +291,9 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                 <tbody>
                     {props.rows.map((row: any) => {
                         const rowClass = props.selectingEntity.some(
-                            e => e.id === row.id && e.type === row.type
+                            e =>
+                                e.id === row.original_id &&
+                                e.type === row.original_type
                         )
                             ? 'focus'
                             : 'no-focus';
@@ -294,7 +305,9 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                                         type: 'mouse-enter-entity',
                                         data: {
                                             type: row.type,
-                                            id: row.id
+                                            id: row.id,
+                                            original_type: row.original_type,
+                                            original_id: row.original_id
                                         }
                                     })
                                 }
@@ -303,7 +316,9 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                                         type: 'mouse-leave-entity',
                                         data: {
                                             type: row.type,
-                                            id: row.id
+                                            id: row.id,
+                                            original_type: row.original_type,
+                                            original_id: row.original_id
                                         }
                                     })
                                 }
@@ -320,11 +335,19 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                                                 data: {
                                                     id: row.id,
                                                     type: row.type,
+                                                    original_id:
+                                                        props.original_id,
+                                                    original_type:
+                                                        props.original_type,
                                                     traversePath: [
                                                         ...props.parentTraversePath,
                                                         {
                                                             id: props.id,
                                                             type: props.type,
+                                                            original_id:
+                                                                props.original_id,
+                                                            original_type:
+                                                                props.original_type,
                                                             traversePath:
                                                                 props.parentTraversePath
                                                         }
@@ -338,11 +361,17 @@ const renderAssetDetails = (props: RenderAssetDetailsProps) => {
                                         data: {
                                             id: row.id,
                                             type: row.type,
+                                            original_id: props.original_id,
+                                            original_type: props.original_type,
                                             traversePath: [
                                                 ...props.parentTraversePath,
                                                 {
                                                     id: props.id,
                                                     type: props.type,
+                                                    original_id:
+                                                        props.original_id,
+                                                    original_type:
+                                                        props.original_type,
                                                     traversePath:
                                                         props.parentTraversePath
                                                 }
@@ -400,8 +429,10 @@ function renderDetailsPanels(props: RenderDetailsPanelsProps): any {
             });
         case 'asset-details':
             return renderAssetDetails({
-                id: props.leafDetails.data.attributes.original_id,
-                type: props.leafDetails.data.attributes.original_type,
+                id: props.leafDetails.data.attributes.id,
+                type: props.leafDetails.data.attributes.type,
+                original_id: props.leafDetails.data.attributes.original_id,
+                original_type: props.leafDetails.data.attributes.original_type,
                 parentTraversePath: props.leafDetails.req.traversePath,
                 rows: props.leafDetails.data.rows,
                 attributes: props.leafDetails.data.attributes,
