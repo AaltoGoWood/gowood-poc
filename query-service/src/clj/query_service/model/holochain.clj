@@ -2,12 +2,10 @@
   (:require [org.httpkit.client :as http]
             [clojure.edn :as edn]
             [clojure.data.json :as json]
-            [clojure.walk :refer [keywordize-keys]]))
+            [clojure.walk :refer [keywordize-keys]]
+            [config.core :refer [env]]))
 
-(def url "http://localhost:8888")
-
-(def call-config {"instance_id" "test-instance-2"
-                  "zome" "gowood_key"})
+(def call-config (:holochain-call-config env))
 
 (defn parse-asset-id [{:keys [body] :as http-response}]
   (-> body
@@ -47,13 +45,13 @@
   (let [conf (merge call-config {"function" "create_signed_token_for_value"})
         args {"value" {"id" id "type" type "attributes" attrs "rows" (vec rows)}}]
     (println args)
-    (call-holochain-api url args conf parse-create-key-from-value-response)))
+    (call-holochain-api (:holochain-url env) args conf parse-create-key-from-value-response)))
 
 (defn fetch-asset-id
   ;; Key = holochain entry address encrypted by the agent we are calling
   [holochain-key]
   (let [conf (merge call-config {"function" "get_value_from_signed_token"})]
-    (call-holochain-api url {"token" holochain-key} conf parse-asset-id)))
+    (call-holochain-api (:holochain-url env) {"token" holochain-key} conf parse-asset-id)))
 
 (defn holo-row? [{:keys [type]}]
   (= type "holochain-link"))
@@ -71,7 +69,7 @@
     :else v))
 
 (defn normalize-object [obj]
-  (into {} 
+  (into {}
         (map (fn [[k v]] [k (normalize-value k v)]) obj)))
 
 
@@ -85,9 +83,9 @@
                 :original_id original-id
                 :original_type original-type})))))
 
-(defn ->normal-data-attributes 
-  [id 
-   type 
+(defn ->normal-data-attributes
+  [id
+   type
    {original-type :type original-id :id attributes :attributes }]
   (merge (normalize-object attributes)
          {:id id
@@ -95,7 +93,7 @@
           :original_id original-id
           :original_type original-type}))
 
-(defn with-data-from-holochain [requested-id 
+(defn with-data-from-holochain [requested-id
                                 requested-type
                                 {:keys [rows] :as data}]
   (-> data

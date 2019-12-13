@@ -7,18 +7,18 @@
 In `/holochain` folder
 
 ```
-docker build -t holo-test .
+docker build -t holochain-image .
 ```
 ## 2) run it and bind app folder to it
 
 ```
-docker run -it -p 8888:8888 --name holo-test-1 --mount src="$(pwd)"/app,target=/holochain,type=bind holo-test bash
+docker run -it -p 8888:8888 --name holochain-container --mount src="$(pwd)"/app,target=/holochain,type=bind holochain-image bash
 ```
 
 # Returning to a stopped container
 
 ```
-docker start holo-test-1
+docker start holochain-container
 ```
 
 # Holochain development flow
@@ -64,6 +64,6 @@ curl -X POST -H "Content-Type: application/json" -d '{"id": "0", "jsonrpc": "2.0
 ## Delete container and image to build it again
 
 ```
-docker rm holo-test-1 
-docker rmi holo-test
+docker rm holochain-container 
+docker rmi holochain-image
 ```
