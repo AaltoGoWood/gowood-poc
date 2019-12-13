@@ -201,10 +201,6 @@ function onHoverInteractionStream(
         .map(cmd => {
             switch (cmd.type) {
                 case 'mouse-enter-entity':
-                    console.log(
-                        'onHoverInteractionStream.mouse-enter-entity',
-                        cmd
-                    );
                     return {
                         type: 'selected-entities',
                         data: [cmd.data]
