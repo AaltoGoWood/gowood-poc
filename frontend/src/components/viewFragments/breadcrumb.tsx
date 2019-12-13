@@ -43,7 +43,9 @@ export interface BreadcrumbProps {
     traversePath: QueryEntity[];
     dispatchFn: (e: Command) => void;
 }
+
 export const Breadcrumb = (props: BreadcrumbProps) => {
+    console.log('rendering Breadcrumb', props.traversePath);
     const navNodeView = (name: string, onclick: (e: any) => void) => (
         <span className="node-container">
             <button className="gowood-button small" onclick={onclick}>
@@ -71,10 +73,14 @@ export const Breadcrumb = (props: BreadcrumbProps) => {
                 });
             })}
             {props.traversePath.map(node =>
-                navNodeView(`${node.type} (Id: ${node.id})`, (e: any) => {
-                    e.preventDefault();
-                    dispatchNavigateCommands(props.dispatchFn, node);
-                })
+                navNodeView(
+                    `${node.original_type ||
+                        node.type} (Id: ${node.original_id || node.id})`,
+                    (e: any) => {
+                        e.preventDefault();
+                        dispatchNavigateCommands(props.dispatchFn, node);
+                    }
+                )
             )}
         </div>
     );
