@@ -52,7 +52,7 @@
                     [:mock :holochain] (fake-db/apply-command op cmd-body)
                     [:real :graph-db] (ogre-db/apply-command op cmd-body)
                     [:real :holochain] (holochain/apply-command op cmd-body))]
-    
+
     (cond (= node-data :invalid-query) (bad-request-fn)
           :else (ok-fn node-data))))
 
@@ -131,10 +131,16 @@
                           (ogre-db/reset-graph)
                           (println "db removed")
                           (res/ok "ok"))}
-      :post {:summary "Create new database"
+      :post {:summary "Create new database with some data stored in Holochain"
              :handler (fn [& _]
                         (println "Seeding db")
                         (ogre-db/init-poc-graph-with-holodata)
                         (println "db seeded")
-                        (res/ok "ok"))}}]]])
-
+                        (res/ok "ok"))}}]
+    ["/data-without-holochain"
+      {:post {:summary "Create new database WITHOUT any data stored in Holochain"
+              :handler (fn [& _]
+                         (println "Seeding db")
+                         (ogre-db/init-poc-graph-without-holodata)
+                         (println "db seeded")
+                         (res/ok "ok"))}}]]])
