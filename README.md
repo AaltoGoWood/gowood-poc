@@ -42,11 +42,17 @@ Clone this git repository:
 
 # Start and run all services with one commmand using docker-compose
 
-1. build and start services with docker-compose
-2. initialize POC data to the database
+1. Download this repository using 
+2. Build and start services with docker-compose
+3. Initialize POC data to the database
 
+## 1. Download this repository using
 
-## 1. build and start services with docker-compose
+Option 1: Downloading this git repository as Zip-file and extract it.
+
+Option 2: Use GIT (`git clone git@github.com:AaltoGoWood/gowood-poc.git`). This option require GIT installed on your computer. You also need GitHub account.
+
+## 2. Build and start services with docker-compose
 
 In Mac, Linux and in WSL (Windows Subsystem for Linux), run in root folder:
 
@@ -65,7 +71,7 @@ At first run probably up to 30 minutes or so
 
 NOTE: Currently Holochain instance runs in-memory instance. If you want to persist instance source chain into file change in-memory-instance-conductor-config.toml config file to file-instance-conductor-config.toml in docker-compose.yaml.
 
-## 2. initialize POC data to the database
+## 3. initialize POC data to the database
 
 see section `5. Initialize POC data to the database` 
 
