@@ -111,34 +111,34 @@
         (entity "plywood" "p124" {"producer" "UPM Plywood"})
         (entity "plywood" "p125" {"producer" "UPM Plywood"})
 
-        (entity "tree-trunk" "p123-1"  {"speciesOfTree" "Pine"
-                                        "trunkWidth" 75
+        (entity "tree-trunk" "455829"  {"speciesOfTree" "birch"
+                                        "trunkWidth" "29.33"
                                         "timestamp" "2019-10-14T09:12:13.012Z"
-                                        "length" 20
-                                        "coords" "25.474273614, 65.0563745"})
-        (entity "tree-trunk" "p123-2" {"speciesOfTree" "Pine"
-                                       "trunkWidth" 60
+                                        "length" "27.78667329"
+                                        "coords" "30.15397461, 62.4168632"})
+        (entity "tree-trunk" "455874" {"speciesOfTree" "birch"
+                                       "trunkWidth" "28.57"
                                        "timestamp" "2019-10-12T09:12:13.012Z"
-                                       "length" 30
-                                       "coords" "25.474293614, 65.0543745"})
-        (entity "tree-trunk" "p124-1" {"speciesOfTree" "Pine"
-                                       "trunkWidth" 60
+                                       "length" "28.65986376"
+                                       "coords" "30.15477914, 62.41683654"})
+        (entity "tree-trunk" "461782" {"speciesOfTree" "spruce"
+                                       "trunkWidth" "57.41"
                                        "timestamp" "2019-10-11T09:10:13.012Z"
-                                       "length" 25
-                                       "coords" "25.474243614, 65.0503745"})
-        (entity "tree-trunk" "p125-1" {"speciesOfTree" "Pine"
-                                       "trunkWidth" 60
+                                       "length" "31.66797217"
+                                       "coords" "30.1541639467, 62.4171853834"})
+        (entity "tree-trunk" "467166" {"speciesOfTree" "pine"
+                                       "trunkWidth" "42.96"
                                        "timestamp" "2019-10-11T09:10:13.012Z"
-                                       "length" 25
-                                       "coords" "25.484243614, 65.0503645"})
+                                       "length" "27.85418971"
+                                       "coords" "30.1541639467, 62.4171853834"})
         (composed-of "building/746103" "plywood/p123")
         (composed-of "building/746103" "plywood/p124")
         (composed-of "building/746103" "plywood/p125")
 
-        (composed-of "plywood/p123" "tree-trunk/p123-1")
-        (composed-of "plywood/p123" "tree-trunk/p123-2")
-        (composed-of "plywood/p124" "tree-trunk/p124-1")
-        (composed-of "plywood/p125" "tree-trunk/p125-1")
+        (composed-of "plywood/p123" "tree-trunk/455829")
+        (composed-of "plywood/p123" "tree-trunk/455874")
+        (composed-of "plywood/p124" "tree-trunk/461782")
+        (composed-of "plywood/p125" "tree-trunk/467166")
         (.next))))
 
 
@@ -165,28 +165,28 @@
 (defn init-poc-graph-with-holodata []
   (let [g (get-graph)
         holo-keys {:p123 (holo/add-asset! "plywood" "p123" {"producer" "UPM Plywood"}
-                                          (holo/add-asset! "tree-trunk" "p123-1"  {"speciesOfTree" "Pine"
-                                                                                   "trunkWidth" "75"
+                                          (holo/add-asset! "tree-trunk" "455829"  {"speciesOfTree" "birch"
+                                                                                   "trunkWidth" "29.33"
                                                                                    "timestamp" "2019-10-14T09:12:13.012Z"
-                                                                                   "length" "20"
-                                                                                   "coords" "25.474273614, 65.0563745"})
-                                          (holo/add-asset! "tree-trunk" "p123-2" {"speciesOfTree" "Pine"
-                                                                                  "trunkWidth" "60"
+                                                                                   "length" "27.78667329"
+                                                                                   "coords" "30.15397461, 62.4168632"})
+                                          (holo/add-asset! "tree-trunk" "455874" {"speciesOfTree" "birch"
+                                                                                  "trunkWidth" "28.57"
                                                                                   "timestamp" "2019-10-12T09:12:13.012Z"
-                                                                                  "length" "30"
-                                                                                  "coords" "25.474293614, 65.0543745"}))
+                                                                                  "length" "28.65986376"
+                                                                                  "coords" "30.15477914, 62.41683654"}))
                    :p124 (holo/add-asset! "plywood" "p124" {"producer" "UPM Plywood"}
-                                          (holo/add-asset! "tree-trunk" "p124-1" {"speciesOfTree" "Pine"
-                                                                                  "trunkWidth" "60"
+                                          (holo/add-asset! "tree-trunk" "461782" {"speciesOfTree" "spruce"
+                                                                                  "trunkWidth" "57.41"
                                                                                   "timestamp" "2019-10-11T09:10:13.012Z"
-                                                                                  "length" "25"
-                                                                                  "coords" "25.474243614, 65.0503745"}))
+                                                                                  "length" "31.66797217"
+                                                                                  "coords" "30.1541639467, 62.4171853834"}))
                    :p125 (holo/add-asset! "plywood" "p125" {"producer" "UPM Plywood"}
-                                          (holo/add-asset! "tree-trunk" "p125-1" {"speciesOfTree" "Pine"
-                                                                                  "trunkWidth" "60"
+                                          (holo/add-asset! "tree-trunk" "467166" {"speciesOfTree" "pine"
+                                                                                  "trunkWidth" "42.96"
                                                                                   "timestamp" "2019-10-11T09:10:13.012Z"
-                                                                                  "length" "25"
-                                                                                  "coords" "25.474243614, 65.0503745"}))}]
+                                                                                  "length" "27.85418971"
+                                                                                  "coords" "30.1541639467, 62.4171853834"}))}]
     (-> g
         (entity "building" "746103")
         (hc-entity "1" "holochain-link" (:p123 holo-keys))
@@ -227,7 +227,7 @@
   (if (= type "holochain-link")
     (holo/->normal-data-row id)
     (merge row {:original_id id :original_type type})))
-  
+
 (defn with-data-from-holochain [{:keys [rows attributes] :as data}]
   (when data
     (-> data
