@@ -20,9 +20,9 @@ Docker should be the only dependency for running the app
 
 Installation details for Docker depend on the operating system you are using
 
-Linux distros: https://docs.docker.com/install/ (choose the one you have)
-Windows 10: https://docs.docker.com/docker-for-windows/install/
-MAC: https://docs.docker.com/docker-for-mac/install/
+* Linux distros: https://docs.docker.com/install/ (choose the one you have)
+* Windows 10: https://docs.docker.com/docker-for-windows/install/
+* Mac: https://docs.docker.com/docker-for-mac/install/
 
 ### For development purposes
 
