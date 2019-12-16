@@ -63,6 +63,8 @@ $ENV:PWD = (("$(pwd)" -replace "\\","/") -replace "c:","/c"); docker-compose up
 This will take several minutes.
 At first run probably up to 30 minutes or so
 
+NOTE: Currently Holochain instance runs in-memory instance. If you want to persist instance source chain into file change in-memory-instance-conductor-config.toml config file to file-instance-conductor-config.toml in docker-compose.yaml.
+
 ## 2. initialize POC data to the database
 
 see section `5. Initialize POC data to the database` 
