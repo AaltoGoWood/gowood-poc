@@ -42,7 +42,8 @@
 
 (defn add-asset!
   [type id attrs & rows]
-  (let [conf (merge call-config {"function" "create_signed_token_for_value"})
+  (let [instance (if (= type "plywood") "test-instance-1" "test-instance-2")
+        conf (merge call-config {"function" "create_signed_token_for_value" "instance_id" instance})
         args {"value" {"id" id "type" type "attributes" attrs "rows" (vec rows)}}]
     (println args)
     (call-holochain-api (:holochain-url env) args conf parse-create-key-from-value-response)))
