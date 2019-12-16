@@ -207,7 +207,11 @@ Click the button "Try it out" in the green box under the heading: POST /api/db/j
   - Contains the holochain app written in rust
   - Stack: Holochain, rust
 
-
 ## Backlog
 
 https://www.pivotaltracker.com/n/projects/2408940
+
+# Acknowledgement
+
+Used tree trunk data from a Harvester data sample provided by Arbonaut Oy and used with their permission. Building shown in map including Geojson model is OpenData provided by Helsinki City. Used 3D model is used with Creative Commons licence (CC BY 4.0). Model is created by lowlypoly (https://sketchfab.com/3d-models/building-apartment-2-305a61a885b24540af1c408b78a01b45).
+
