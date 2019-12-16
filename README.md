@@ -202,6 +202,12 @@ http://localhost:3000/api/api-docs/index.html#!/POC32admin/post_api_db_janus_gra
 
 Click the button "Try it out" in the green box under the heading: POST /api/db/janusgraph
 
+This adds a building to the graph database and the related assets to Holochain.
+
+NOTE: Sometimes you might want to store all data in the JanusGraph graph database and skip Holochain.
+This makes the app a little bit faster and you don't need to start the Holochain service.
+In order to populate the data without Holochain data choose the endpoint `POST /api/db/data-without-holochain`
+
 
 # Developing the app
 
