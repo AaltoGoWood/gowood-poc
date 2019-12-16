@@ -20,9 +20,9 @@ Docker should be the only dependency for running the app
 
 Installation details for Docker depend on the operating system you are using
 
-Linux distros: https://docs.docker.com/install/ (choose the one you have)
-Windows 10: https://docs.docker.com/docker-for-windows/install/
-MAC: https://docs.docker.com/docker-for-mac/install/
+* Linux distros: https://docs.docker.com/install/ (choose the one you have)
+* Windows 10: https://docs.docker.com/docker-for-windows/install/
+* Mac: https://docs.docker.com/docker-for-mac/install/
 
 ### For development purposes
 
@@ -42,11 +42,17 @@ Clone this git repository:
 
 # Start and run all services with one commmand using docker-compose
 
-1. build and start services with docker-compose
-2. initialize POC data to the database
+1. Download this repository using 
+2. Build and start services with docker-compose
+3. Initialize POC data to the database
 
+## 1. Download this repository using
 
-## 1. build and start services with docker-compose
+Option 1: Downloading this git repository as Zip-file and extract it.
+
+Option 2: Use GIT (`git clone git@github.com:AaltoGoWood/gowood-poc.git`). This option require GIT installed on your computer. You also need GitHub account.
+
+## 2. Build and start services with docker-compose
 
 In Mac, Linux and in WSL (Windows Subsystem for Linux), run in root folder:
 
@@ -63,7 +69,9 @@ $ENV:PWD = (("$(pwd)" -replace "\\","/") -replace "c:","/c"); docker-compose up
 This will take several minutes.
 At first run probably up to 30 minutes or so
 
-## 2. initialize POC data to the database
+NOTE: Currently Holochain instance runs in-memory instance. If you want to persist instance source chain into file change in-memory-instance-conductor-config.toml config file to file-instance-conductor-config.toml in docker-compose.yaml.
+
+## 3. initialize POC data to the database
 
 see section `5. Initialize POC data to the database` 
 
