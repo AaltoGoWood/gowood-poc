@@ -48,15 +48,27 @@ Clone this git repository:
 
 ## 1. build and start services with docker-compose
 
-In root folder:
-`docker-compose up`
+In Mac, Linux and in WSL (Windows Subsystem for Linux), run in root folder:
+
+```
+docker-compose up
+```
+
+In Windows when not using WSL, run following command in root folder in Windows PowerShell prompt:
+
+```
+$ENV:PWD = (("$(pwd)" -replace "\\","/") -replace "c:","/c"); docker-compose up
+```
 
 This will take several minutes.
 At first run probably up to 30 minutes or so
 
+NOTE: Currently Holochain instance runs in-memory instance. If you want to persist instance source chain into file change in-memory-instance-conductor-config.toml config file to file-instance-conductor-config.toml in docker-compose.yaml.
+
 ## 2. initialize POC data to the database
 
 see section `5. Initialize POC data to the database` 
+
 
 
 # Starting services for development purposes (optional)
