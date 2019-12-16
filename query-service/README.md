@@ -1,8 +1,6 @@
-# query-service
+# Query-service
 
 generated using Luminus version "3.53"
-
-FIXME
 
 ## Start the JanusGraph 
 
@@ -24,7 +22,6 @@ ctrl-C
 Check the id with `docker ps -a`
 `docker start <id>`
 
-
 ## Prerequisites
 
 You will need [Leiningen][1] 2.0 or above installed.
@@ -35,4 +32,6 @@ You will need [Leiningen][1] 2.0 or above installed.
 
 To start a web server for the application, run:
 
-    lein run 
+```
+lein run 
+```
