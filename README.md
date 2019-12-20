@@ -1,16 +1,17 @@
 # GoWood Poc
 
-Proof of concept for the GoWood raw material tracking.
+The repository contains a proof of concept implementation for the GoWood project. GoWood related raw material origin tracking and carbon accounting.
+
+For more detailed description of the project goals and reasoning behind the implementation see https://github.com/AaltoGoWood/gowood-poc/blob/master/docs/GoWood-technical-description.pdf
 
 # Getting started
 
-You can start each of the application services separately or all at once using docker-compose.
-Instructions for both below. 
+You can start each of the application services separately or all at once using docker-compose. Instructions for both below. 
+
 Notice that you can also start some the services with docker-compose and some 
 manually on the terminal. For this you need to momentarily disable (comment out)
 those services from docker-compose.yml that you wish to start manually OR
-start everything with docker-compose and then manually stop the ones you are planning to start
-on the terminal yourself.
+start everything with docker-compose and then manually stop the ones you are planning to start on the terminal yourself.
 
 ## Prerequisites
 
