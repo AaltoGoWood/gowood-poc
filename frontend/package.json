@@ -74,7 +74,7 @@
     "ramda": "^0.25.0",
     "serialize-javascript": "^2.1.2",
     "switch-path": "^1.2.0",
-    "three": "^0.110.0",
+    "three": "^0.137.0",
     "xstream": "^11.7.0"
   },
   "one-fits-all": true
